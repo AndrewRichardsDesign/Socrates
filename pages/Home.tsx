@@ -1305,14 +1305,14 @@ export default function Home() {
 
   if (docsLoading || prefsLoading || !currentDoc) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden font-sans text-foreground">
+    <div className="flex h-full w-full bg-background overflow-hidden font-sans text-foreground">
       {/* Backdrop for Sidebar when in overlay mode (mobile only) - z-[60] to be above bottom toolbar (z-50) */}
       {isSidebarOpen && isMobile && (
         <div 
