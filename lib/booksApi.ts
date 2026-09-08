@@ -55,6 +55,21 @@ function isStudyMaterial(title: string, subtitle?: string): boolean {
   return STUDY_MATERIAL_PATTERNS.test(subtitle ? `${title} ${subtitle}` : title);
 }
 
+/**
+ * Whether a language field names English.
+ *
+ * The three sources disagree on spelling: Gutendex uses "en", Open Library
+ * MARC codes ("eng"), and the Archive a mix of "eng", "English" and
+ * "english". A missing field is treated as English so that items which simply
+ * do not record a language are not dropped.
+ */
+function isEnglish(language: unknown): boolean {
+  if (language == null) return true;
+  const values = Array.isArray(language) ? language : [language];
+  if (values.length === 0) return true;
+  return values.some((v) => /^(en|eng|english)$/i.test(String(v).trim()));
+}
+
 async function fetchJson(url: string): Promise<any> {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`${response.status} for ${url}`);
@@ -73,6 +88,8 @@ async function searchOpenLibrary(query: string): Promise<BookResult[]> {
       .filter((doc: any) => {
         const hasIA = doc.ia && Array.isArray(doc.ia) && doc.ia.length > 0;
         if (!hasIA && doc.public_scan_b !== true) return false;
+
+        if (!isEnglish(doc.language)) return false;
 
         const title = doc.title || '';
         if (isStudyMaterial(title, doc.subtitle || '')) return false;
@@ -103,7 +120,9 @@ async function searchOpenLibrary(query: string): Promise<BookResult[]> {
 
 async function searchGutenberg(query: string): Promise<BookResult[]> {
   try {
-    const data = await fetchJson(`https://gutendex.com/books/?search=${encodeURIComponent(query)}`);
+    const data = await fetchJson(
+      `https://gutendex.com/books/?search=${encodeURIComponent(query)}&languages=en`
+    );
 
     return (data.results || [])
       .filter((book: any) => !isStudyMaterial(book.title || ''))
@@ -126,8 +145,8 @@ async function searchInternetArchive(query: string): Promise<BookResult[]> {
   try {
     const data = await fetchJson(
       `https://archive.org/advancedsearch.php?q=${encodeURIComponent(
-        `title:(${query}) AND mediatype:texts AND format:(Text OR EPUB)`
-      )}&fl=identifier,title,creator,date,description&rows=50&output=json`
+        `title:(${query}) AND mediatype:texts AND format:(Text OR EPUB) AND language:(English OR eng)`
+      )}&fl=identifier,title,creator,date,description,language&rows=50&output=json`
     );
 
     const queryWords = query.toLowerCase().split(/\s+/).filter((w) => w.length > 2);
@@ -136,6 +155,7 @@ async function searchInternetArchive(query: string): Promise<BookResult[]> {
       .filter((doc: any) => {
         const title = doc.title || '';
         if (isStudyMaterial(title)) return false;
+        if (!isEnglish(doc.language)) return false;
 
         // Require at least half the query words to appear in the title.
         const titleLower = title.toLowerCase();
@@ -250,6 +270,7 @@ interface ArchiveItem {
   restricted: boolean;
   files: ArchiveFile[];
   title: string;
+  language: unknown;
 }
 
 async function fetchArchiveItem(identifier: string): Promise<ArchiveItem | null> {
@@ -261,6 +282,7 @@ async function fetchArchiveItem(identifier: string): Promise<ArchiveItem | null>
       restricted: metadata['access-restricted-item'] === 'true' || metadata['access-restricted-item'] === true,
       files: data.files || [],
       title: metadata.title || 'Unknown Title',
+      language: metadata.language,
     };
   } catch {
     return null;
@@ -304,6 +326,8 @@ function pickText(files: ArchiveFile[]): ArchiveFile | undefined {
 async function readArchiveItem(identifier: string): Promise<BookContent | null> {
   const item = await fetchArchiveItem(identifier);
   if (!item || item.restricted) return null;
+  // A work listed as English can still resolve to a translated edition.
+  if (!isEnglish(item.language)) return null;
 
   const epub = pickEpub(item.files);
   if (epub) {
@@ -342,7 +366,7 @@ async function readArchiveItem(identifier: string): Promise<BookContent | null> 
 
 /** Finds Archive items likely to hold the full text of a given title. */
 async function findArchiveCopies(title: string, author?: string): Promise<string[]> {
-  const terms = [`title:(${title})`, 'mediatype:texts'];
+  const terms = [`title:(${title})`, 'mediatype:texts', 'language:(English OR eng)'];
   if (author) terms.push(`creator:(${author})`);
 
   const data = await fetchJson(
