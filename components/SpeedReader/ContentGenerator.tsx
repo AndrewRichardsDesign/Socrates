@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { fetchPracticeText, TopicNotFoundError, RateLimitedError } from "@/lib/wikipedia";
 
 interface ContentGeneratorProps {
   onGenerate: (title: string, content: string) => void;
@@ -29,45 +30,36 @@ export function ContentGenerator({ onGenerate }: ContentGeneratorProps) {
 
     setLoading(true);
     try {
-      // Use Wikipedia API for "generation"
-      const response = await fetch(
-        `https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&redirects=1&origin=*&titles=${encodeURIComponent(topic)}`
-      );
-      const data = await response.json();
-      const pages = data.query?.pages;
-      
-      if (!pages) {
-         throw new Error("No pages found");
-      }
+      const article = await fetchPracticeText(topic);
 
-      const pageId = Object.keys(pages)[0];
-      const page = pages[pageId];
-
-      if (pageId === "-1" || !page.extract) {
-         toast({
-          title: "Topic not found",
-          description: "Could not find a Wikipedia article for this topic. Try something more specific.",
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
-      }
-
-      onGenerate(page.title, page.extract);
+      onGenerate(article.title, article.content);
       setOpen(false);
       setTopic("");
       toast({
         title: "Content Generated",
-        description: `Created practice text about ${page.title}`,
+        description: `Created practice text about ${article.title}`,
       });
-
     } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch content. Please check your connection.",
-        variant: "destructive"
-      });
+      if (error instanceof TopicNotFoundError) {
+        toast({
+          title: "Topic not found",
+          description: "Could not find a Wikipedia article for this topic. Try something more specific.",
+          variant: "destructive"
+        });
+      } else if (error instanceof RateLimitedError) {
+        toast({
+          title: "Too many requests",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        console.error(error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch content. Please check your connection.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
