@@ -11,27 +11,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { stripGutenbergBoilerplate } from "@/lib/frontMatterParser";
-
-interface BookResult {
-  id: string;
-  title: string;
-  author: string;
-  publishDate: string;
-  source: 'openlibrary' | 'gutenberg' | 'internetarchive';
-  coverId?: string;
-  description?: string;
-  iaId?: string;
-}
-
-interface BookDetails {
-  id: string;
-  title: string;
-  author: string;
-  publishDate: string;
-  description: string;
-  source: string;
-  coverId?: string;
-}
+import {
+  searchBooks,
+  fetchBookDetails,
+  fetchBookContent,
+  ContentUnavailableError,
+  type BookResult,
+  type BookDetails,
+} from "@/lib/booksApi";
 
 function isGarbageContent(text: string): { isGarbage: boolean; reason?: string } {
   if (!text || text.length < 1000) {
@@ -98,12 +85,8 @@ export function FreeBooks({ onAddBook, onClose }: FreeBooksProps) {
     setIsSearching(true);
     setHasSearched(true);
     try {
-      const response = await fetch(`/api/books/search?q=${encodeURIComponent(query)}`);
-      if (!response.ok) {
-        throw new Error('Search failed');
-      }
-      const data = await response.json();
-      setResults(Array.isArray(data) ? data : []);
+      const data = await searchBooks(query);
+      setResults(data);
     } catch (error) {
       console.error('Search error:', error);
       setResults([]);
@@ -115,12 +98,7 @@ export function FreeBooks({ onAddBook, onClose }: FreeBooksProps) {
   const handleViewDetails = useCallback(async (book: BookResult) => {
     setIsLoadingDetails(true);
     try {
-      const response = await fetch(`/api/books/details/${book.source}/${book.id}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch details');
-      }
-      const data = await response.json();
-      setSelectedBook(data);
+      setSelectedBook(await fetchBookDetails(book.source, book.id));
     } catch (error) {
       console.error('Details error:', error);
       setSelectedBook({
@@ -137,17 +115,8 @@ export function FreeBooks({ onAddBook, onClose }: FreeBooksProps) {
     }
   }, []);
 
-  const parseEpubFromBase64 = useCallback(async (base64Data: string): Promise<string> => {
+  const parseEpub = useCallback(async (arrayBuffer: ArrayBuffer): Promise<string> => {
     const ePub = (await import('epubjs')).default;
-    
-    // Convert base64 to ArrayBuffer
-    const binaryString = atob(base64Data);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    const arrayBuffer = bytes.buffer;
     
     const book = ePub(arrayBuffer);
     await book.ready;
@@ -180,29 +149,24 @@ export function FreeBooks({ onAddBook, onClose }: FreeBooksProps) {
     return fullText.trim() || 'Could not extract text from EPUB';
   }, []);
 
-  const tryFetchContent = useCallback(async (source: string, id: string, iaId?: string): Promise<{ success: boolean; title?: string; content?: string; format?: string; epubData?: string; error?: string }> => {
+  const tryFetchContent = useCallback(async (source: string, id: string, iaId?: string): Promise<{ success: boolean; title?: string; content?: string; format?: string; epubData?: ArrayBuffer; error?: string }> => {
     try {
-      const url = source === 'openlibrary' && iaId
-        ? `/api/books/content/${source}/${id}?iaId=${encodeURIComponent(iaId)}`
-        : `/api/books/content/${source}/${id}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      if (!response.ok) {
-        return { success: false, error: data.error || 'Failed to fetch', title: data.title };
-      }
-      
-      return { success: true, title: data.title, content: data.content, format: data.format, epubData: data.epubData };
+      const data = await fetchBookContent(source, id, iaId);
+      return data.format === 'epub'
+        ? { success: true, title: data.title, format: 'epub', epubData: data.epubData }
+        : { success: true, title: data.title, format: 'txt', content: data.content };
     } catch (error) {
+      if (error instanceof ContentUnavailableError) {
+        return { success: false, error: 'content_unavailable', title: error.title };
+      }
+      console.error('Content fetch error:', error);
       return { success: false, error: 'Network error' };
     }
   }, []);
 
   const searchForAlternative = useCallback(async (title: string, excludeSource: string): Promise<BookResult | null> => {
     try {
-      const response = await fetch(`/api/books/search?q=${encodeURIComponent(title)}`);
-      if (!response.ok) return null;
-      const allResults: BookResult[] = await response.json();
+      const allResults = await searchBooks(title);
       
       // Find a result from a different source that matches the title well
       const titleWords = title.toLowerCase().split(/\s+/).filter(w => w.length > 2);
@@ -261,7 +225,7 @@ export function FreeBooks({ onAddBook, onClose }: FreeBooksProps) {
       
       // If EPUB data is returned, parse it on the client
       if (result.format === 'epub' && result.epubData) {
-        content = await parseEpubFromBase64(result.epubData);
+        content = await parseEpub(result.epubData);
       }
       
       // Strip Gutenberg boilerplate (license text at start/end) for text files
@@ -288,7 +252,7 @@ export function FreeBooks({ onAddBook, onClose }: FreeBooksProps) {
     } finally {
       setIsAddingBook(null);
     }
-  }, [onAddBook, onClose, parseEpubFromBase64, tryFetchContent, searchForAlternative]);
+  }, [onAddBook, onClose, parseEpub, tryFetchContent, searchForAlternative]);
 
   const getCoverUrl = (book: BookResult) => {
     if (book.source === 'gutenberg' && book.coverId) {
