@@ -249,7 +249,6 @@ export async function registerRoutes(
           columnWidth: 800,
           highlightStyle: 'block',
           showTrail: false,
-          useWindowMask: false,
           fontSize: 1,
           fontWeight: 'normal',
           useBionicReading: false,

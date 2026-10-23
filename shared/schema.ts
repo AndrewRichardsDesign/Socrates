@@ -29,7 +29,6 @@ export const preferences = pgTable("preferences", {
   columnWidth: integer("column_width").notNull().default(800),
   highlightStyle: varchar("highlight_style").notNull().default('block'),
   showTrail: boolean("show_trail").notNull().default(false),
-  useWindowMask: boolean("use_window_mask").notNull().default(false),
   fontSize: real("font_size").notNull().default(24),
   fontFamily: varchar("font_family").notNull().default('Inter'),
   fontWeight: varchar("font_weight").notNull().default('400'),

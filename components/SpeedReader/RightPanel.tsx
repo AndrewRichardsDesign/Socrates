@@ -86,8 +86,6 @@ interface RightPanelProps {
   onColumnWidthChange: (val: number) => void;
   showTrail: boolean;
   onShowTrailChange: (val: boolean) => void;
-  useWindowMask: boolean;
-  onUseWindowMaskChange: (val: boolean) => void;
   highlightStyle: 'block' | 'underline' | 'line-start' | 'bold' | 'none';
   onHighlightStyleChange: (val: 'block' | 'underline' | 'line-start' | 'bold' | 'none') => void;
   highlightColor: string;
@@ -778,8 +776,6 @@ export function RightPanel({
   onColumnWidthChange,
   showTrail,
   onShowTrailChange,
-  useWindowMask,
-  onUseWindowMaskChange,
   highlightStyle,
   onHighlightStyleChange,
   highlightColor,
@@ -855,7 +851,6 @@ export function RightPanel({
     'speed',
     'highlight',
     'paint-trail',
-    'focus-window',
     'pause',
     'font-size',
     'restructure',
@@ -882,7 +877,7 @@ export function RightPanel({
   };
 
   const renderSection = (id: string) => {
-    const isDisabled = mode === 'rsvp' && ['column-width', 'paint-trail', 'focus-window', 'highlight'].includes(id);
+    const isDisabled = mode === 'rsvp' && ['column-width', 'paint-trail', 'highlight'].includes(id);
 
     const containerClass = cn(
        "space-y-2.5 py-4",
@@ -1196,23 +1191,6 @@ export function RightPanel({
       case 'paint-trail':
         // Paint trail UI hidden - logic kept
         return null;
-
-      case 'focus-window':
-        return wrapWithDisabledClick(
-          <div className={cn(
-            "flex items-center justify-between py-4",
-            isDisabled && "opacity-45"
-          )}>
-             <span className="text-[11.5px] font-medium text-muted-foreground tracking-[0.005em] flex items-center gap-1.5">
-                <Scan className="h-3.5 w-3.5" />
-                Focus Window
-             </span>
-             <Switch 
-                checked={useWindowMask}
-                onCheckedChange={onUseWindowMaskChange}
-             />
-          </div>
-        );
 
       case 'highlight':
         return wrapWithDisabledClick(

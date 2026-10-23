@@ -17,91 +17,77 @@ interface HighlightProps {
     width: number;
     duration: number;
   };
+  /** Where the current word sits, in content coordinates. */
+  activeBox: { left: number; width: number } | null;
+  /** How long one step of playback lasts, so the glide matches it. */
+  stepMs: number;
   highlightStyle: 'block' | 'underline' | 'line-start';
   highlightColor: string;
   fontSize: number;
   isPlaying: boolean;
-  currentWordProgress: number; // 0-1 progress through the line
   showTrail: boolean;
 }
 
+/**
+ * The reading highlight.
+ *
+ * It tracks the current word directly. An earlier version animated across the
+ * whole line on a timer and only re-rendered on line changes, so it drifted
+ * away from the word being read: it would reach the end of a line early and
+ * wait there, and because the active word is forced dark to read against the
+ * band, a word left behind by the band showed as dark text on a dark ground.
+ * Moving between word positions keeps the two in step by construction.
+ */
 const GlidingHighlight = memo(function GlidingHighlight({
   lineAnimation,
+  activeBox,
+  stepMs,
   highlightStyle,
   highlightColor,
   fontSize,
   isPlaying,
-  currentWordProgress,
   showTrail
 }: HighlightProps) {
   const highlightRef = useRef<HTMLDivElement>(null);
   const trailRef = useRef<HTMLDivElement>(null);
-  const prevLineAnimationRef = useRef(lineAnimation);
-  
-  // Handle line changes and play/pause - update animation imperatively
+  const prevLineStartRef = useRef<number | null>(null);
+
   useLayoutEffect(() => {
     const highlightEl = highlightRef.current;
     const trailEl = trailRef.current;
-    if (!highlightEl) return;
-    
-    const isNewLine = prevLineAnimationRef.current !== lineAnimation;
-    prevLineAnimationRef.current = lineAnimation;
-    
-    // Update CSS custom properties for the new line
-    highlightEl.style.setProperty('--highlight-start', `${lineAnimation.startLeft}px`);
-    highlightEl.style.setProperty('--highlight-end', `${lineAnimation.endLeft}px`);
-    
-    // Update position styles
+    if (!highlightEl || !activeBox) return;
+
+    // Jump without easing when arriving on a new line; sliding across the page
+    // from the end of one line to the start of the next reads as a glitch.
+    const isNewLine = prevLineStartRef.current !== lineAnimation.lineStart;
+    prevLineStartRef.current = lineAnimation.lineStart;
+
+    // Move quickly, then rest on the word. Easing over the whole step would
+    // mean the band only arrives as the next word becomes active, leaving it
+    // a step behind for the entire line.
+    const ease = isNewLine || !isPlaying ? 0 : Math.min(stepMs * 0.45, 140);
+    const isVertical = highlightStyle === 'line-start';
+
+    highlightEl.style.transition = ease
+      ? `left ${ease}ms ease-out, width ${ease}ms ease-out, top 120ms ease-out`
+      : 'none';
     highlightEl.style.top = `${lineAnimation.top}px`;
     highlightEl.style.height = `${lineAnimation.height}px`;
-    
-    // Also update trail element
-    const lineWidth = lineAnimation.endLeft - lineAnimation.startLeft + lineAnimation.width;
+    highlightEl.style.left = `${activeBox.left}px`;
+    if (!isVertical) highlightEl.style.width = `${activeBox.width}px`;
+
     if (trailEl) {
+      trailEl.style.transition = ease ? `width ${ease}ms ease-out` : 'none';
       trailEl.style.top = `${lineAnimation.top}px`;
       trailEl.style.height = `${lineAnimation.height}px`;
       trailEl.style.left = `${lineAnimation.startLeft}px`;
-      trailEl.style.setProperty('--trail-width', `${lineWidth}px`);
+      trailEl.style.width = `${Math.max(0, activeBox.left + activeBox.width - lineAnimation.startLeft)}px`;
     }
-    
-    if (isPlaying) {
-      // For new lines, start from the beginning (progress 0)
-      // For resume, use current word progress
-      const progress = isNewLine ? 0 : currentWordProgress;
-      const delay = -progress * lineAnimation.duration;
-      
-      // Force animation restart by briefly removing it
-      highlightEl.style.animation = 'none';
-      if (trailEl) trailEl.style.animation = 'none';
-      // Force reflow to ensure animation restarts
-      void highlightEl.offsetWidth;
-      
-      highlightEl.style.animation = `highlightGlide ${lineAnimation.duration}ms linear forwards`;
-      highlightEl.style.animationDelay = `${delay}ms`;
-      
-      // Trail follows the same animation timing
-      if (trailEl) {
-        trailEl.style.animation = `trailExpand ${lineAnimation.duration}ms linear forwards`;
-        trailEl.style.animationDelay = `${delay}ms`;
-      }
-    } else {
-      // Pausing - calculate current position and set it directly
-      const currentLeft = lineAnimation.startLeft + currentWordProgress * (lineAnimation.endLeft - lineAnimation.startLeft);
-      highlightEl.style.animation = 'none';
-      highlightEl.style.left = `${currentLeft}px`;
-      
-      // Trail width matches current progress
-      if (trailEl) {
-        const trailWidth = currentLeft - lineAnimation.startLeft + lineAnimation.width;
-        trailEl.style.animation = 'none';
-        trailEl.style.width = `${Math.max(0, trailWidth)}px`;
-      }
-    }
-  }, [isPlaying, lineAnimation, currentWordProgress]);
-  
+  }, [lineAnimation, activeBox, stepMs, isPlaying, highlightStyle]);
+
   return (
     <>
-      {/* Trail overlay - shows "read" portion of the line (only when showTrail is enabled) */}
+      {/* Trail overlay - shows the part of the line already read */}
       {showTrail && (highlightStyle === 'block' || highlightStyle === 'underline') && (
         <div
           ref={trailRef}
@@ -114,13 +100,12 @@ const GlidingHighlight = memo(function GlidingHighlight({
               borderBottom: `${Math.round(Math.max(2, fontSize * 0.15))}px solid ${resolveHighlightColorAlpha(highlightColor, 0.5)}`,
             }),
             zIndex: 0,
-            width: 0, // Starts at 0, expands via animation
-            // top, left, height set via useEffect to avoid conflicts
+            width: 0,
           }}
         />
       )}
-      
-      {/* Main highlight - zIndex 0 so text (zIndex 1+) appears above it */}
+
+      {/* Main highlight - zIndex 0 so text (zIndex 1+) sits above it */}
       <div
         ref={highlightRef}
         className="absolute pointer-events-none"
@@ -137,23 +122,24 @@ const GlidingHighlight = memo(function GlidingHighlight({
             borderRadius: `${Math.max(1, fontSize * 0.03)}px`,
             zIndex: 0,
           }),
-          width: highlightStyle === 'line-start' ? Math.round(Math.max(2, fontSize * 0.12)) : lineAnimation.width,
-          // top, left, height set via useEffect to avoid conflicts
+          ...(highlightStyle === 'line-start'
+            ? { width: Math.round(Math.max(2, fontSize * 0.12)) }
+            : {}),
         }}
       />
     </>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison - only re-render if these change
-  // Allow lineAnimation changes to trigger re-render for line transitions
+  // The active box has to be compared: it is what moves the highlight now.
   return prevProps.isPlaying === nextProps.isPlaying &&
          prevProps.lineAnimation === nextProps.lineAnimation &&
+         prevProps.activeBox?.left === nextProps.activeBox?.left &&
+         prevProps.activeBox?.width === nextProps.activeBox?.width &&
+         prevProps.stepMs === nextProps.stepMs &&
          prevProps.highlightStyle === nextProps.highlightStyle &&
          prevProps.highlightColor === nextProps.highlightColor &&
          prevProps.fontSize === nextProps.fontSize &&
-         prevProps.showTrail === nextProps.showTrail &&
-         // Only check currentWordProgress if we're pausing (not playing)
-         (prevProps.isPlaying || prevProps.currentWordProgress === nextProps.currentWordProgress);
+         prevProps.showTrail === nextProps.showTrail;
 });
 
 interface FindHighlightInfo {
@@ -361,7 +347,6 @@ interface ScrollDisplayProps {
   onChunkSizeChange?: (chunkSize: number) => void;
   columnWidth: number;
   showTrail?: boolean;
-  useWindowMask?: boolean;
   highlightStyle?: 'block' | 'underline' | 'line-start' | 'bold' | 'none';
   highlightColor?: string;
   fontSize: number;
@@ -393,7 +378,6 @@ export function ScrollDisplay({
   onChunkSizeChange,
   columnWidth, 
   showTrail = false, 
-  useWindowMask = false, 
   highlightStyle = 'block', 
   highlightColor = '#facc15',
   fontSize,
@@ -602,6 +586,15 @@ export function ScrollDisplay({
   }>>([]);
   
   
+  // getBoundingClientRect reports visual pixels, but CSS top/left are layout
+  // pixels. The app renders at a default zoom, so every measurement fed back
+  // as a position has to be divided by it — otherwise the highlight drifts
+  // further from the text the further down the page it goes.
+  const getZoom = () => {
+    const raw = parseFloat(getComputedStyle(document.documentElement).zoom || '1');
+    return Number.isFinite(raw) && raw > 0 ? raw : 1;
+  };
+
   // Detect line boundaries and pre-calculate animation when entering a new line
   useLayoutEffect(() => {
     const currentWord = wordRefs.current[currentIndex];
@@ -651,6 +644,7 @@ export function ScrollDisplay({
       const lastWord = wordRefs.current[lineEnd];
       
       if (firstWord && lastWord) {
+        const zoom = getZoom();
         const firstRect = firstWord.getBoundingClientRect();
         const lastRect = lastWord.getBoundingClientRect();
         
@@ -667,7 +661,7 @@ export function ScrollDisplay({
           : avgCharWidth * 5 + (paddingX * 2); // Wide block/underline
         
         // Calculate positions relative to content div
-        const startLeft = firstRect.left - contentRect.left - paddingX;
+        const startLeft = (firstRect.left - contentRect.left) / zoom - paddingX;
         
         // Get the EXACT text bounds of the last word, excluding trailing space
         // getClientRects() returns the visual bounds of actual rendered text
@@ -679,7 +673,7 @@ export function ScrollDisplay({
         
         // endLeft is where the highlight's LEFT edge should be when its RIGHT edge touches the last character
         // At progress = 1: highlight.left = endLeft, highlight.right = endLeft + fixedWidth = lastCharRight
-        const lastCharRightEdge = lastTextRect.right - contentRect.left + paddingX;
+        const lastCharRightEdge = (lastTextRect.right - contentRect.left) / zoom + paddingX;
         const endLeft = lastCharRightEdge - fixedWidth;
         
         // Get consistent line metrics - measured once from hidden reference element
@@ -689,12 +683,12 @@ export function ScrollDisplay({
           // "Hg" contains both ascender (H) and descender (g) for accurate measurement
           const measureRect = measurementRef.current.getBoundingClientRect();
           cachedLineMetricsRef.current = {
-            height: measureRect.height,
-            baseline: measureRect.height
+            height: measureRect.height / zoom,
+            baseline: measureRect.height / zoom
           };
         }
         // Fallback to first word height if measurement element not ready
-        const lineHeight = cachedLineMetricsRef.current?.height ?? firstRect.height;
+        const lineHeight = cachedLineMetricsRef.current?.height ?? firstRect.height / zoom;
         const height = lineHeight + (paddingY * 2);
         
         // Centre on the glyphs, not on the word's box. Words are inline-block
@@ -710,12 +704,12 @@ export function ScrollDisplay({
             return firstRect;
           }
         })();
-        const wordTop = firstTextRect.top - contentRect.top;
+        const wordTop = (firstTextRect.top - contentRect.top) / zoom;
         
         // Split the difference between the box and the text evenly, so the
         // band always has equal air above and below the line rather than
         // relying on two measurements that share no basis.
-        const top = wordTop - ((height - firstTextRect.height) / 2);
+        const top = wordTop - ((height - firstTextRect.height / zoom) / 2);
         
         // The glide has to last exactly as long as the line's words take to
         // advance. Playback moves on a fixed clock of 60000/wpm per word, so
@@ -740,8 +734,8 @@ export function ScrollDisplay({
           if (wordEl) {
             const wordRect = wordEl.getBoundingClientRect();
             wordPositions.push({
-              left: wordRect.left - contentRect.left - paddingX - startLeft, // relative to line start
-              width: wordRect.width
+              left: (wordRect.left - contentRect.left) / zoom - paddingX - startLeft, // relative to line start
+              width: wordRect.width / zoom
             });
           }
         }
@@ -865,7 +859,7 @@ export function ScrollDisplay({
     const fontSizeChanged = fontSize !== prevFontSizeRef.current;
     prevFontSizeRef.current = fontSize;
     
-    if (!fontSizeChanged || useWindowMask) return;
+    if (!fontSizeChanged) return;
     if (!containerRef.current || !activeWordRef.current) return;
     
     const container = containerRef.current;
@@ -878,7 +872,7 @@ export function ScrollDisplay({
     
     // Direct scrollTop assignment is the fastest possible scroll
     container.scrollTop = targetScrollTop;
-  }, [fontSize, useWindowMask]);
+  }, [fontSize]);
   
   // Track the last line we scrolled to, to avoid scrolling on every word
   const lastScrolledLineStartRef = useRef<number | null>(null);
@@ -886,8 +880,6 @@ export function ScrollDisplay({
   // Auto-scroll ONLY on line transitions during playback
   // This effect runs only when lineAnimation.lineStart changes (actual line transitions)
   useEffect(() => {
-    // Skip if focus window is on - handled separately
-    if (useWindowMask) return;
     // Skip if not playing
     if (!isPlaying) return;
     // Skip if no lineAnimation yet
@@ -925,11 +917,10 @@ export function ScrollDisplay({
       top: targetScrollTop,
       behavior: 'smooth'
     });
-  }, [lineAnimation?.lineStart, isPlaying, useWindowMask]);
+  }, [lineAnimation?.lineStart, isPlaying]);
   
   // Separate effect for scrolling when paused (only if out of view)
   useEffect(() => {
-    if (useWindowMask) return;
     if (isPlaying) return; // Playing is handled by lineStart effect above
     if (skipAutoScrollRef.current) {
       skipAutoScrollRef.current = false;
@@ -958,35 +949,8 @@ export function ScrollDisplay({
         behavior: 'smooth'
       });
     }
-  }, [currentIndex, isPlaying, useWindowMask, lineAnimation]);
+  }, [currentIndex, isPlaying, lineAnimation]);
 
-  // Focus Window: Auto-scroll to keep current line in view
-  const prevFocusFontSizeRef = useRef(fontSize);
-  useLayoutEffect(() => {
-    if (!useWindowMask || !activeWordRef.current || !containerRef.current) return;
-    
-    const container = containerRef.current;
-    const element = activeWordRef.current;
-    
-    // Detect font size change for instant scroll
-    const fontSizeChanged = fontSize !== prevFocusFontSizeRef.current;
-    prevFocusFontSizeRef.current = fontSize;
-    
-    // Keep the current line at a fixed position (100px from top of container)
-    const lineTop = element.offsetTop;
-    const targetScrollTop = Math.max(0, lineTop - 100);
-    
-    if (fontSizeChanged) {
-      // Direct scrollTop for fastest possible update
-      container.scrollTop = targetScrollTop;
-    } else {
-      container.scrollTo({
-        top: targetScrollTop,
-        behavior: 'smooth'
-      });
-    }
-    
-  }, [useWindowMask, currentIndex, fontSize, columnWidth]);
 
   // After a word click (especially on grayed-out text), scroll to the active word after DOM updates
   useLayoutEffect(() => {
@@ -1020,12 +984,34 @@ export function ScrollDisplay({
     });
   }, [currentIndex]);
 
+  // Where the highlight belongs right now: the current word's own box, taken
+  // from the positions measured for this line, padded to match the old band.
+  const activeBox = useMemo(() => {
+    if (!lineAnimation) return null;
+    const positions = lineAnimation.wordPositions;
+    const first = currentIndex - lineAnimation.lineStart;
+    if (!positions || first < 0 || first >= positions.length) return null;
+
+    const span = Math.max(1, chunkSize);
+    const last = Math.min(first + span - 1, positions.length - 1);
+    const padX = fontSize * 0.2;
+    const left = lineAnimation.startLeft + positions[first].left;
+    const right = lineAnimation.startLeft + positions[last].left + positions[last].width;
+    return { left, width: Math.max(0, right - left) + padX * 2 };
+  }, [lineAnimation, currentIndex, chunkSize, fontSize]);
+
+  // One step of playback, which is how long the glide to the next word lasts.
+  const stepMs = useMemo(
+    () => (60000 / Math.max(1, wpm)) * Math.max(1, chunkSize),
+    [wpm, chunkSize]
+  );
+
   return (
     <div 
       ref={containerRef}
       className={cn(
         "flex-1 px-3 py-5 sm:px-6 sm:py-8 md:px-10 md:py-12 w-full select-none flex justify-center items-start relative cursor-pointer overflow-x-hidden",
-        useWindowMask ? "overflow-y-hidden" : "overflow-y-auto"
+        "overflow-y-auto"
       )}
       onClick={(e) => {
         if (e.target === e.currentTarget || e.target === containerRef.current) {
@@ -1085,11 +1071,12 @@ export function ScrollDisplay({
         {lineAnimation && (highlightStyle === 'block' || highlightStyle === 'underline' || highlightStyle === 'line-start') && (
           <GlidingHighlight
             lineAnimation={lineAnimation}
+            activeBox={activeBox}
+            stepMs={stepMs}
             highlightStyle={highlightStyle}
             highlightColor={highlightColor}
             fontSize={fontSize}
             isPlaying={isPlaying}
-            currentWordProgress={currentWordProgress}
             showTrail={showTrail}
           />
         )}
@@ -1144,10 +1131,9 @@ export function ScrollDisplay({
             elements.push(
               <span 
                 key="before" 
-                className={useWindowMask ? "text-transparent select-none" : "opacity-40 cursor-pointer"}
+                className="opacity-40 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (useWindowMask) return;
                   
                   // Save click position to maintain visual stability after re-render
                   clickYPositionRef.current = e.clientY;
@@ -1205,9 +1191,7 @@ export function ScrollDisplay({
             const activeEnd = Math.min(currentIndex + chunkSize, lineInfo.lineEnd + 1);
             const isActive = index >= currentIndex && index < activeEnd;
             const isTrail = trailIndices.has(index);
-            // For focus window: check if this word is on the current line
             const isOnCurrentLine = index >= lineInfo.lineStart && index <= lineInfo.lineEnd;
-            const isHiddenByFocusWindow = useWindowMask && !isOnCurrentLine;
             
             // Words that have been passed (before current line) - these are "read" and grayed
             const isBeforeCurrentLine = index < lineInfo.lineStart;
@@ -1273,12 +1257,9 @@ export function ScrollDisplay({
                   wordRefs.current[index] = el; 
                   if (index === currentIndex) activeWordRef.current = el;
                 }}
+                data-active={isActive ? '' : undefined}
                 onClick={(e) => {
                   e.stopPropagation();
-                  // When Focus Window is enabled, only allow clicks on visible words (current line)
-                  if (isHiddenByFocusWindow) {
-                    return;
-                  }
                   clickYPositionRef.current = e.clientY;
                   skipAutoScrollRef.current = true;
                   scrollToActiveAfterRenderRef.current = true;
@@ -1289,33 +1270,32 @@ export function ScrollDisplay({
                   "px-[0.25em] -ml-[0.25em] py-1 border-y border-transparent",
                   highlightStyle === 'underline' && "border-t-0 py-0 pb-1 mb-1 border-b-transparent",
                   // Focus window: hide words not on current line and disable clicking
-                  isHiddenByFocusWindow && "!text-transparent select-none cursor-default",
                   // Normal styling when not hidden by focus window
-                  !isHiddenByFocusWindow && isActive && highlightStyle === 'block' && "text-black dark:text-black z-10",
-                  !isHiddenByFocusWindow && isActive && highlightStyle === 'underline' && "text-foreground z-10 !rounded-none pb-0.5",
-                  !isHiddenByFocusWindow && isActive && highlightStyle === 'line-start' && "text-foreground z-10 !rounded-none",
-                  !isHiddenByFocusWindow && isActive && highlightStyle === 'bold' && "text-foreground z-10 [-webkit-text-stroke:0.6px_currentColor]",
-                  !isHiddenByFocusWindow && isTrail && highlightStyle === 'block' && "text-black z-10",
-                  !isHiddenByFocusWindow && isTrail && highlightStyle === 'underline' && "text-foreground !rounded-none pb-0.5",
-                  !isHiddenByFocusWindow && isTrail && highlightStyle === 'line-start' && "text-foreground !rounded-none",
+                  isActive && highlightStyle === 'block' && "text-black dark:text-black z-10",
+                  isActive && highlightStyle === 'underline' && "text-foreground z-10 !rounded-none pb-0.5",
+                  isActive && highlightStyle === 'line-start' && "text-foreground z-10 !rounded-none",
+                  isActive && highlightStyle === 'bold' && "text-foreground z-10 [-webkit-text-stroke:0.6px_currentColor]",
+                  isTrail && highlightStyle === 'block' && "text-black z-10",
+                  isTrail && highlightStyle === 'underline' && "text-foreground !rounded-none pb-0.5",
+                  isTrail && highlightStyle === 'line-start' && "text-foreground !rounded-none",
                   // Gray out entire completed lines (lines before current line) - use opacity to preserve font color
-                  !isHiddenByFocusWindow && isBeforeCurrentLine && "opacity-40",
+                  isBeforeCurrentLine && "opacity-40",
                   // Future words and words on current line stay in normal font color with hover effect
-                  !isHiddenByFocusWindow && !isBeforeCurrentLine && !isActive && !isTrail && "hover:bg-muted"
+                  !isBeforeCurrentLine && !isActive && !isTrail && "hover:bg-muted"
                   
                   /* SAVED: Word-by-word graying code (disabled)
                   // Words before current line that finished animating are gray
-                  !isHiddenByFocusWindow && isBeforeCurrentLine && !isOnGrayingLine && "text-muted-foreground/40",
+                  isBeforeCurrentLine && !isOnGrayingLine && "text-muted-foreground/40",
                   // Words on a previous line still animating: apply fade animation
-                  !isHiddenByFocusWindow && isOnGrayingLine && "word-fade-gray",
+                  isOnGrayingLine && "word-fade-gray",
                   // Words on current line: apply fade animation as highlight passes (for gliding styles)
-                  !isHiddenByFocusWindow && isOnCurrentLineAndPlaying && !isActive && !isTrail && "word-fade-gray",
+                  isOnCurrentLineAndPlaying && !isActive && !isTrail && "word-fade-gray",
                   // Bold style: past words are gray immediately
-                  !isHiddenByFocusWindow && isPast && highlightStyle === 'bold' && "text-muted-foreground/40",
+                  isPast && highlightStyle === 'bold' && "text-muted-foreground/40",
                   // When paused or for bold style: past words on current line are gray
-                  !isHiddenByFocusWindow && isPast && !isPlaying && "text-muted-foreground/40",
+                  isPast && !isPlaying && "text-muted-foreground/40",
                   // Future words (at/after active) stay in normal font color with hover effect
-                  !isHiddenByFocusWindow && isFuture && !isOnCurrentLineAndPlaying && "text-foreground hover:bg-muted"
+                  isFuture && !isOnCurrentLineAndPlaying && "text-foreground hover:bg-muted"
                   */
                 )}
                 style={undefined}
@@ -1333,10 +1313,9 @@ export function ScrollDisplay({
             elements.push(
               <span 
                 key="after" 
-                className={useWindowMask ? "text-transparent select-none" : "cursor-pointer"}
+                className="cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (useWindowMask) return;
                   
                   // Save click position to maintain visual stability after re-render
                   clickYPositionRef.current = e.clientY;
@@ -1366,7 +1345,7 @@ export function ScrollDisplay({
           }
           
           return elements;
-        }, [words, currentIndex, chunkSize, trailIndices, highlightStyle, useBionicReading, visibleWordRange, onWordClick, lineInfo.lineEnd, useWindowMask, lineInfo.lineStart, displayStartIndex, chapters, fontSize, isPlaying, lineAnimation, grayingLines])}
+        }, [words, currentIndex, chunkSize, trailIndices, highlightStyle, useBionicReading, visibleWordRange, onWordClick, lineInfo.lineEnd, lineInfo.lineStart, displayStartIndex, chapters, fontSize, isPlaying, lineAnimation, grayingLines])}
       </div>
       </div>
       

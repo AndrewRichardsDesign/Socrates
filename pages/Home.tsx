@@ -108,7 +108,6 @@ export default function Home() {
   const [chunkSize, setChunkSize] = useState(1);
   const [columnWidth, setColumnWidth] = useState(800);
   const [showTrail, setShowTrail] = useState(false);
-  const [useWindowMask, setUseWindowMask] = useState(false);
   const [highlightStyle, setHighlightStyle] = useState<'block' | 'underline' | 'line-start' | 'bold' | 'none'>('block');
   const [highlightColor, setHighlightColor] = useState('#a6a6a6');
   const [fontSize, setFontSize] = useState(1);
@@ -182,7 +181,6 @@ export default function Home() {
     columnWidth,
     highlightStyle,
     showTrail,
-    useWindowMask,
     fontSize,
     fontFamily,
     fontWeight,
@@ -196,7 +194,7 @@ export default function Home() {
     paragraphPauseFrequency,
     paragraphPauseDuration,
     maxWpm,
-  }), [wpm, chunkSize, columnWidth, highlightStyle, showTrail, useWindowMask, fontSize, fontFamily, fontWeight, fontColor, highlightColor, useBionicReading, pauseOnSentence, sentencePauseFrequency, sentencePauseDuration, pauseOnParagraph, paragraphPauseFrequency, paragraphPauseDuration, maxWpm]);
+  }), [wpm, chunkSize, columnWidth, highlightStyle, showTrail, fontSize, fontFamily, fontWeight, fontColor, highlightColor, useBionicReading, pauseOnSentence, sentencePauseFrequency, sentencePauseDuration, pauseOnParagraph, paragraphPauseFrequency, paragraphPauseDuration, maxWpm]);
   
   // Handle "Remember for this Document" checkbox
   const handleRememberForDocumentChange = useCallback((enabled: boolean) => {
@@ -513,7 +511,6 @@ export default function Home() {
       setColumnWidth(preferences.columnWidth);
       setHighlightStyle(preferences.highlightStyle as any);
       setShowTrail(preferences.showTrail);
-      setUseWindowMask(preferences.useWindowMask);
       setFontSize(preferences.fontSize);
       setFontWeight(preferences.fontWeight || '400');
       if (preferences.fontFamily) setFontFamily(preferences.fontFamily);
@@ -557,7 +554,6 @@ export default function Home() {
         if (docPrefs.columnWidth !== undefined) setColumnWidth(docPrefs.columnWidth);
         if (docPrefs.highlightStyle !== undefined) setHighlightStyle(docPrefs.highlightStyle as any);
         if (docPrefs.showTrail !== undefined) setShowTrail(docPrefs.showTrail);
-        if (docPrefs.useWindowMask !== undefined) setUseWindowMask(docPrefs.useWindowMask);
         if (docPrefs.fontSize !== undefined) setFontSize(docPrefs.fontSize);
         if (docPrefs.fontWeight !== undefined) setFontWeight(docPrefs.fontWeight);
         if (docPrefs.fontFamily !== undefined) setFontFamily(docPrefs.fontFamily);
@@ -621,8 +617,7 @@ export default function Home() {
           columnWidth,
           highlightStyle,
           showTrail,
-          useWindowMask,
-          fontSize,
+                fontSize,
           fontWeight,
           useBionicReading,
           pauseOnSentence,
@@ -643,7 +638,6 @@ export default function Home() {
     columnWidth,
     highlightStyle,
     showTrail,
-    useWindowMask,
     fontSize,
     fontWeight,
     useBionicReading,
@@ -668,8 +662,7 @@ export default function Home() {
         columnWidth,
         highlightStyle,
         showTrail,
-        useWindowMask,
-        fontSize,
+            fontSize,
         fontWeight,
         fontColor,
         highlightColor,
@@ -692,7 +685,6 @@ export default function Home() {
     columnWidth,
     highlightStyle,
     showTrail,
-    useWindowMask,
     fontSize,
     fontWeight,
     fontColor,
@@ -898,8 +890,7 @@ export default function Home() {
         setColumnWidth(preferences.columnWidth);
         setHighlightStyle(preferences.highlightStyle as any);
         setShowTrail(preferences.showTrail);
-        setUseWindowMask(preferences.useWindowMask);
-        setFontSize(preferences.fontSize);
+          setFontSize(preferences.fontSize);
         setFontWeight(preferences.fontWeight || '400');
       if (preferences.fontFamily) setFontFamily(preferences.fontFamily);
         setUseBionicReading(preferences.useBionicReading);
@@ -961,8 +952,7 @@ export default function Home() {
           setColumnWidth(preferences.columnWidth);
           setHighlightStyle(preferences.highlightStyle as any);
           setShowTrail(preferences.showTrail);
-          setUseWindowMask(preferences.useWindowMask);
-          setFontSize(preferences.fontSize);
+              setFontSize(preferences.fontSize);
           setFontWeight(preferences.fontWeight || '400');
       if (preferences.fontFamily) setFontFamily(preferences.fontFamily);
           setUseBionicReading(preferences.useBionicReading);
@@ -991,7 +981,6 @@ export default function Home() {
       if (docPrefs.columnWidth !== undefined) setColumnWidth(docPrefs.columnWidth);
       if (docPrefs.highlightStyle !== undefined) setHighlightStyle(docPrefs.highlightStyle as any);
       if (docPrefs.showTrail !== undefined) setShowTrail(docPrefs.showTrail);
-      if (docPrefs.useWindowMask !== undefined) setUseWindowMask(docPrefs.useWindowMask);
       if (docPrefs.fontSize !== undefined) setFontSize(docPrefs.fontSize);
       if (docPrefs.fontWeight !== undefined) setFontWeight(docPrefs.fontWeight);
       if (docPrefs.fontFamily !== undefined) setFontFamily(docPrefs.fontFamily);
@@ -1011,7 +1000,6 @@ export default function Home() {
       setColumnWidth(preferences.columnWidth);
       setHighlightStyle(preferences.highlightStyle as any);
       setShowTrail(preferences.showTrail);
-      setUseWindowMask(preferences.useWindowMask);
       setFontSize(preferences.fontSize);
       setFontWeight(preferences.fontWeight || '400');
       if (preferences.fontFamily) setFontFamily(preferences.fontFamily);
@@ -1090,8 +1078,7 @@ export default function Home() {
           setColumnWidth(preferences.columnWidth);
           setHighlightStyle(preferences.highlightStyle as any);
           setShowTrail(preferences.showTrail);
-          setUseWindowMask(preferences.useWindowMask);
-          setFontSize(preferences.fontSize);
+              setFontSize(preferences.fontSize);
           setFontWeight(preferences.fontWeight || '400');
       if (preferences.fontFamily) setFontFamily(preferences.fontFamily);
           setUseBionicReading(preferences.useBionicReading);
@@ -1651,7 +1638,6 @@ export default function Home() {
                   onChunkSizeChange={setScrollChunkSize}
                   columnWidth={debouncedColumnWidth}
                   showTrail={showTrail}
-                  useWindowMask={useWindowMask}
                   highlightStyle={highlightStyle}
                   highlightColor={highlightColor}
                   fontSize={fontSize}
@@ -1700,8 +1686,6 @@ export default function Home() {
           onColumnWidthChange={setColumnWidth}
           showTrail={showTrail}
           onShowTrailChange={setShowTrail}
-          useWindowMask={useWindowMask}
-          onUseWindowMaskChange={setUseWindowMask}
           highlightStyle={highlightStyle}
           onHighlightStyleChange={setHighlightStyle}
           highlightColor={highlightColor}
@@ -1763,8 +1747,6 @@ export default function Home() {
           onColumnWidthChange={setColumnWidth}
           showTrail={showTrail}
           onShowTrailChange={setShowTrail}
-          useWindowMask={useWindowMask}
-          onUseWindowMaskChange={setUseWindowMask}
           highlightStyle={highlightStyle}
           onHighlightStyleChange={setHighlightStyle}
           highlightColor={highlightColor}

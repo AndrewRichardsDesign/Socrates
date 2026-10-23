@@ -56,8 +56,6 @@ interface MobileControlBarProps {
   onColumnWidthChange: (val: number) => void;
   showTrail: boolean;
   onShowTrailChange: (val: boolean) => void;
-  useWindowMask: boolean;
-  onUseWindowMaskChange: (val: boolean) => void;
   highlightStyle: 'block' | 'underline' | 'line-start' | 'bold' | 'none';
   onHighlightStyleChange: (val: 'block' | 'underline' | 'line-start' | 'bold' | 'none') => void;
   highlightColor: string;
@@ -117,8 +115,6 @@ export function MobileControlBar({
   onColumnWidthChange,
   showTrail,
   onShowTrailChange,
-  useWindowMask,
-  onUseWindowMaskChange,
   highlightStyle,
   onHighlightStyleChange,
   highlightColor,
@@ -312,10 +308,7 @@ export function MobileControlBar({
                 </div>
                 {/* Highlight multiple words UI hidden - logic kept */}
                 {/* Paint Trail UI hidden - logic kept */}
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-medium">Focus Window</Label>
-                  <Switch checked={useWindowMask} onCheckedChange={onUseWindowMaskChange} />
-                </div>
+                
               </>
             )}
             {/* Bionic Reading - shown for both modes */}

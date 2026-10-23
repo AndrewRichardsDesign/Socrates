@@ -11,7 +11,6 @@ const DEFAULT_PREFERENCES: Preferences = {
   columnWidth: 800,
   highlightStyle: "block",
   showTrail: false,
-  useWindowMask: false,
   fontSize: 24,
   fontFamily: "Inter",
   fontWeight: "400",
