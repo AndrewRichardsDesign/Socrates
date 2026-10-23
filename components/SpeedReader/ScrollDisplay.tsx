@@ -1010,7 +1010,7 @@ export function ScrollDisplay({
     <div 
       ref={containerRef}
       className={cn(
-        "flex-1 p-8 md:p-16 w-full select-none flex justify-center relative cursor-pointer overflow-x-hidden",
+        "flex-1 px-3 py-5 sm:px-6 sm:py-8 md:px-10 md:py-12 w-full select-none flex justify-center items-start relative cursor-pointer overflow-x-hidden",
         useWindowMask ? "overflow-y-hidden" : "overflow-y-auto"
       )}
       onClick={(e) => {
@@ -1024,11 +1024,16 @@ export function ScrollDisplay({
         ref={contentRef}
         className={cn(
            "font-serif leading-loose transition-colors duration-300 transition-all ease-in-out relative z-10",
-           "text-foreground"
+           "text-foreground",
+           // The sheet: a page lifted off the canvas, with gutters wide enough
+           // for the highlight block to overhang the first word cleanly.
+           "rounded-xl border border-border/60 bg-card",
+           "px-6 py-8 sm:px-10 sm:py-12 md:px-14 md:py-14",
+           "shadow-[0_1px_2px_0_hsl(28_20%_12%/0.04),0_8px_28px_-6px_hsl(28_20%_12%/0.07)]"
         )}
         style={{ 
           width: '100%', 
-          maxWidth: 'var(--reader-column-width, 100%)',
+          maxWidth: 'calc(var(--reader-column-width, 100%) + 7rem)',
           fontSize: 'var(--reader-font-size, 24px)',
           fontFamily: `'${fontFamily}', sans-serif`,
           fontWeight: parseInt(fontWeight) || 400,

@@ -155,9 +155,8 @@ export function Sidebar({ documents, currentDocId, onSelect, onUpload, onGenerat
               variant="ghost"
               className={cn(
                 "group relative w-full justify-start gap-2.5 font-normal h-auto py-2 pl-3 pr-2.5 rounded-lg",
-                "text-foreground/75 hover:bg-card hover:text-foreground",
-                currentDocId === doc.id &&
-                  "bg-card text-foreground shadow-[0_1px_2px_0_hsl(28_20%_12%/0.05)]"
+                "text-foreground/75 hover:bg-accent/60 hover:text-foreground",
+                currentDocId === doc.id && "bg-accent text-foreground"
               )}
               onClick={() => onSelect(doc.id)}
             >

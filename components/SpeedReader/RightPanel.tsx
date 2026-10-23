@@ -278,7 +278,7 @@ function FontSizeSlider({
   return (
     <div 
       ref={sliderRef}
-      className="relative h-8 border border-border rounded-full flex items-center px-3 cursor-pointer select-none"
+      className="relative h-8 rounded-[9px] border border-border/50 bg-muted/80 flex items-center px-2 cursor-pointer select-none"
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
     >
@@ -291,7 +291,7 @@ function FontSizeSlider({
                 {size}
               </div>
             ) : (
-              <div className="w-2 h-2 rounded-full border border-muted-foreground/30" />
+              <div className="h-[3px] w-[3px] rounded-full bg-muted-foreground/35" />
             )}
           </div>
         );
@@ -570,7 +570,7 @@ function FontSection({
   return (
     <div className={containerClass}>
       <div className="flex items-center justify-between">
-        <h3 className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em] flex items-center gap-1.5">
+        <h3 className="text-[11.5px] font-medium text-muted-foreground tracking-[0.005em] flex items-center gap-1.5">
           <CaseUpper className="h-3.5 w-3.5" />
           Font
         </h3>
@@ -743,7 +743,7 @@ function LineLengthSlider({
   return (
     <div 
       ref={sliderRef}
-      className="relative h-8 border border-border rounded-full flex items-center px-3 cursor-pointer select-none"
+      className="relative h-8 rounded-[9px] border border-border/50 bg-muted/80 flex items-center px-2 cursor-pointer select-none"
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
     >
@@ -756,7 +756,7 @@ function LineLengthSlider({
                 {length}
               </div>
             ) : (
-              <div className="w-2 h-2 rounded-full border border-muted-foreground/30" />
+              <div className="h-[3px] w-[3px] rounded-full bg-muted-foreground/35" />
             )}
           </div>
         );
@@ -885,8 +885,8 @@ export function RightPanel({
     const isDisabled = mode === 'rsvp' && ['column-width', 'paint-trail', 'focus-window', 'highlight'].includes(id);
 
     const containerClass = cn(
-       "space-y-3 py-2.5",
-       isDisabled && "opacity-40 grayscale transition-opacity"
+       "space-y-2.5 py-4",
+       isDisabled && "opacity-45 transition-opacity"
     );
     
     const wrapWithDisabledClick = (content: React.ReactNode) => {
@@ -935,7 +935,7 @@ export function RightPanel({
       case 'pause':
         return (
           <div className={containerClass}>
-            <h3 className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em] flex items-center gap-1.5">
+            <h3 className="text-[11.5px] font-medium text-muted-foreground tracking-[0.005em] flex items-center gap-1.5">
               <Timer className="h-3.5 w-3.5" />
               Pause
             </h3>
@@ -1030,7 +1030,7 @@ export function RightPanel({
       case 'speed':
         return (
           <div className={containerClass}>
-            <h3 className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em] flex items-center gap-1.5">
+            <h3 className="text-[11.5px] font-medium text-muted-foreground tracking-[0.005em] flex items-center gap-1.5">
               <FastForward className="h-3.5 w-3.5" />
               Speed
             </h3>
@@ -1055,6 +1055,10 @@ export function RightPanel({
                       step={10} 
                       onValueChange={(vals) => onWpmChange(vals[0])}
                     />
+                    <div className="flex justify-between pt-1.5 text-[10px] text-muted-foreground/70">
+                      <span>Slower</span>
+                      <span>Faster</span>
+                    </div>
                   </div>
                   <Button 
                     variant="outline" 
@@ -1152,8 +1156,8 @@ export function RightPanel({
                </div>
 
                {mode === 'rsvp' && (
-                 <div className="pt-3 mt-2 border-t border-border/60 space-y-1.5">
-                   <Label className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em]">Word Count</Label>
+                 <div className="pt-4 mt-1 space-y-1.5">
+                   <Label className="text-[11.5px] font-medium text-muted-foreground tracking-[0.005em]">Word Count</Label>
                    <LineLengthSlider 
                      lengths={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
                      chunkSize={chunkSize}
@@ -1170,7 +1174,7 @@ export function RightPanel({
       case 'column-width':
         return wrapWithDisabledClick(
           <div className={containerClass}>
-            <h3 className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em] flex items-center gap-1.5">
+            <h3 className="text-[11.5px] font-medium text-muted-foreground tracking-[0.005em] flex items-center gap-1.5">
               <ArrowLeftRight className="h-3.5 w-3.5" />
               Column Width
             </h3>
@@ -1196,10 +1200,10 @@ export function RightPanel({
       case 'focus-window':
         return wrapWithDisabledClick(
           <div className={cn(
-            "flex items-center justify-between py-3 border-t border-border/50",
-            isDisabled && "opacity-40 grayscale"
+            "flex items-center justify-between py-4",
+            isDisabled && "opacity-45"
           )}>
-             <span className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em] flex items-center gap-1.5">
+             <span className="text-[11.5px] font-medium text-muted-foreground tracking-[0.005em] flex items-center gap-1.5">
                 <Scan className="h-3.5 w-3.5" />
                 Focus Window
              </span>
@@ -1214,7 +1218,7 @@ export function RightPanel({
         return wrapWithDisabledClick(
           <div className={containerClass}>
             <div className="flex items-center justify-between">
-              <h3 className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em] flex items-center gap-1.5">
+              <h3 className="text-[11.5px] font-medium text-muted-foreground tracking-[0.005em] flex items-center gap-1.5">
                 <Highlighter className="h-3.5 w-3.5" />
                 Highlight
               </h3>
@@ -1224,28 +1228,23 @@ export function RightPanel({
                 triggerClassName="w-6 h-6"
               />
             </div>
-            <ToggleGroup type="single" value={highlightStyle} onValueChange={(val) => val && onHighlightStyleChange(val as any)} className="justify-start flex-wrap gap-2">
-               <ToggleGroupItem value="block" size="sm" className="flex-1 min-w-[80px]">
-                 <span className="text-xs">Block</span>
-               </ToggleGroupItem>
-               <ToggleGroupItem value="underline" size="sm" className="flex-1 min-w-[80px]">
-                 <span className="text-xs">Underline</span>
-               </ToggleGroupItem>
-               <ToggleGroupItem value="line-start" size="sm" className="flex-1 min-w-[80px]">
-                 <span className="text-xs">Vertical</span>
-               </ToggleGroupItem>
-               <ToggleGroupItem value="bold" size="sm" className="flex-1 min-w-[80px]">
-                 <span className="text-xs font-bold">Bold</span>
-               </ToggleGroupItem>
-               <ToggleGroupItem value="none" size="sm" className="flex-1 min-w-[80px]">
-                 <span className="text-xs">None</span>
-               </ToggleGroupItem>
+            <ToggleGroup
+              type="single"
+              value={highlightStyle}
+              onValueChange={(val) => val && onHighlightStyleChange(val as any)}
+              className="w-full grid grid-cols-3 gap-0.5"
+            >
+               <ToggleGroupItem value="block" size="sm" className="px-0">Block</ToggleGroupItem>
+               <ToggleGroupItem value="underline" size="sm" className="px-0">Underline</ToggleGroupItem>
+               <ToggleGroupItem value="line-start" size="sm" className="px-0">Vertical</ToggleGroupItem>
+               <ToggleGroupItem value="bold" size="sm" className="px-0 font-bold">Bold</ToggleGroupItem>
+               <ToggleGroupItem value="none" size="sm" className="px-0 col-span-2">None</ToggleGroupItem>
             </ToggleGroup>
             
             {/* Highlight multiple words UI hidden - logic kept */}
             
-            <div className="pt-3 mt-1 border-t border-border/50 flex items-center justify-between">
-              <Label className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em]">Bionic Reading</Label>
+            <div className="pt-4 mt-1 flex items-center justify-between">
+              <Label className="text-[11.5px] font-medium text-muted-foreground tracking-[0.005em]">Bionic Reading</Label>
               <Switch 
                  checked={useBionicReading} 
                  onCheckedChange={onUseBionicReadingChange}
