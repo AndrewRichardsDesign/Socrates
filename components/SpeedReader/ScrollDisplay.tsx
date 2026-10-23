@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useLayoutEffect, useMemo, memo, useCallback, forwardRef } from "react";
+import { resolveReaderColor, resolveHighlightColor, resolveHighlightColorAlpha } from "@/lib/readerColor";
 import { cn } from "@/lib/utils";
 import { renderBionicWord } from "@/lib/bionic";
 import type { ChapterInfo } from "@/lib/chapterDetector";
@@ -107,10 +108,10 @@ const GlidingHighlight = memo(function GlidingHighlight({
           className="absolute pointer-events-none"
           style={{
             ...(highlightStyle === 'block' ? {
-              backgroundColor: highlightColor + '80', // 50% opacity - more visible
+              backgroundColor: resolveHighlightColorAlpha(highlightColor, 0.5),
               borderRadius: `${Math.max(2, fontSize * 0.1)}px`,
             } : {
-              borderBottom: `${Math.round(Math.max(2, fontSize * 0.15))}px solid ${highlightColor}80`, // 50% opacity
+              borderBottom: `${Math.round(Math.max(2, fontSize * 0.15))}px solid ${resolveHighlightColorAlpha(highlightColor, 0.5)}`,
             }),
             zIndex: 0,
             width: 0, // Starts at 0, expands via animation
@@ -125,14 +126,14 @@ const GlidingHighlight = memo(function GlidingHighlight({
         className="absolute pointer-events-none"
         style={{ 
           ...(highlightStyle === 'block' ? {
-            backgroundColor: highlightColor,
+            backgroundColor: resolveHighlightColor(highlightColor),
             borderRadius: `${Math.max(2, fontSize * 0.1)}px`,
             zIndex: 0,
           } : highlightStyle === 'underline' ? {
-            borderBottom: `${Math.round(Math.max(2, fontSize * 0.15))}px solid ${highlightColor}`,
+            borderBottom: `${Math.round(Math.max(2, fontSize * 0.15))}px solid ${resolveHighlightColor(highlightColor)}`,
             zIndex: 0,
           } : {
-            backgroundColor: highlightColor,
+            backgroundColor: resolveHighlightColor(highlightColor),
             borderRadius: `${Math.max(1, fontSize * 0.03)}px`,
             zIndex: 0,
           }),
@@ -1032,7 +1033,7 @@ export function ScrollDisplay({
           fontFamily: `'${fontFamily}', sans-serif`,
           fontWeight: parseInt(fontWeight) || 400,
           fontStyle: fontWeight.includes('italic') ? 'italic' : 'normal',
-          color: fontColor,
+          color: resolveReaderColor(fontColor),
           // CSS variable for highlight glide duration - based on WPM word interval
           '--highlight-glide': `${60 / wpm}s`
         } as React.CSSProperties}

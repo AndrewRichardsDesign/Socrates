@@ -20,15 +20,10 @@ interface SidebarProps {
   onAddFreeBook: (title: string, content: string, fileType?: string) => void;
 }
 
-const fileTypeColors: Record<string, string> = {
-  epub: 'bg-purple-100 text-purple-700',
-  pdf: 'bg-red-100 text-red-700',
-  docx: 'bg-blue-100 text-blue-700',
-  doc: 'bg-blue-100 text-blue-700',
-  txt: 'bg-gray-100 text-gray-600',
-  md: 'bg-green-100 text-green-700',
-  html: 'bg-orange-100 text-orange-700',
-};
+// Format is secondary information, so it is set in one muted monochrome
+// treatment rather than a different colour per extension.
+const FILE_TYPE_CHIP =
+  'border border-border/70 bg-background/60 text-muted-foreground/90';
 
 export function Sidebar({ documents, currentDocId, onSelect, onUpload, onGenerate, onBlankDocument, onClose, onAddFreeBook }: SidebarProps) {
   const [showFreeBooks, setShowFreeBooks] = useState(false);
@@ -53,7 +48,7 @@ export function Sidebar({ documents, currentDocId, onSelect, onUpload, onGenerat
 
   if (showFreeBooks) {
     return (
-      <aside className="w-60 border-r border-sidebar-border bg-white flex flex-col h-full shrink-0 z-[70] md:z-20 md:relative fixed inset-y-0 left-0 shadow-xl md:shadow-none overflow-hidden" style={{ color: '#1f2937' }}>
+      <aside className="w-[244px] border-r border-sidebar-border/80 bg-sidebar text-foreground flex flex-col h-full shrink-0 z-[70] md:z-20 md:relative fixed inset-y-0 left-0 shadow-xl md:shadow-none overflow-hidden">
         <FreeBooks 
           onAddBook={(title, content, fileType) => {
             onAddFreeBook(title, content, fileType);
@@ -67,7 +62,7 @@ export function Sidebar({ documents, currentDocId, onSelect, onUpload, onGenerat
 
   if (showSmokeTest) {
     return (
-      <aside className="w-[420px] max-w-[90vw] border-r border-sidebar-border bg-white flex flex-col h-full shrink-0 z-[70] md:z-20 md:relative fixed inset-y-0 left-0 shadow-xl md:shadow-none overflow-hidden" style={{ color: '#1f2937' }}>
+      <aside className="w-[420px] max-w-[90vw] border-r border-sidebar-border/80 bg-sidebar text-foreground flex flex-col h-full shrink-0 z-[70] md:z-20 md:relative fixed inset-y-0 left-0 shadow-xl md:shadow-none overflow-hidden">
         <PdfSmokeTest onClose={() => setShowSmokeTest(false)} />
       </aside>
     );
@@ -75,64 +70,81 @@ export function Sidebar({ documents, currentDocId, onSelect, onUpload, onGenerat
 
 
   return (
-    <aside className="w-60 border-r border-sidebar-border bg-sidebar text-sidebar-foreground flex flex-col h-full shrink-0 z-[70] md:z-20 md:relative fixed inset-y-0 left-0 shadow-xl md:shadow-none">
-      <div className="px-3 py-3 border-b border-sidebar-border flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-md bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground">
-            <BookOpen className="h-4 w-4" />
+    <aside className="w-[244px] border-r border-sidebar-border/80 bg-sidebar text-sidebar-foreground flex flex-col h-full shrink-0 z-[70] md:z-20 md:relative fixed inset-y-0 left-0 shadow-xl md:shadow-none">
+      <div className="h-12 px-3 border-b border-sidebar-border/80 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="h-[26px] w-[26px] rounded-[7px] bg-primary flex items-center justify-center text-primary-foreground shadow-[0_1px_2px_0_hsl(28_20%_12%/0.16)]">
+            <BookOpen className="h-[15px] w-[15px]" strokeWidth={2} />
           </div>
-          <span className="font-heading font-semibold text-sm tracking-tight text-sidebar-foreground">Aristotle</span>
+          <span className="font-wordmark font-semibold text-[15px] tracking-[-0.02em] text-foreground">
+            Aristotle
+          </span>
         </div>
         <div className="flex items-center gap-1">
           {/* PDF Smoke Test button hidden - logic kept for system-level checks */}
           <Button variant="ghost" size="icon" className="h-7 w-7 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent" onClick={onClose}>
-            <PanelLeftClose className="h-3.5 w-3.5" />
+            <PanelLeftClose className="h-[15px] w-[15px]" strokeWidth={2} />
           </Button>
         </div>
       </div>
-      <div className="p-3 space-y-2">
+      <div className="p-3 space-y-1.5">
         {/* Upload Area */}
         <div 
           {...getRootProps()} 
           className={cn(
-            "border border-dashed rounded-md p-3 text-center cursor-pointer transition-colors",
-            isDragActive ? "border-sidebar-primary bg-sidebar-primary/10" : "border-sidebar-border hover:border-sidebar-foreground/30 hover:bg-sidebar-accent/50"
+            "group rounded-lg border border-dashed px-3 py-4 text-center cursor-pointer transition-colors duration-150",
+            isDragActive
+              ? "border-highlight/70 bg-highlight-subtle"
+              : "border-border bg-card/50 hover:border-border hover:bg-card"
           )}
         >
           <input {...getInputProps()} />
-          <div className="flex flex-col items-center gap-1.5 text-sidebar-foreground/60">
-            <Upload className="h-4 w-4" />
-            <span className="text-[10px] font-medium leading-tight">Upload file (.pdf, .docx, .epub, .txt, .md, .html)</span>
+          <div className="flex flex-col items-center gap-1.5">
+            <Upload
+              className={cn(
+                "h-[15px] w-[15px] transition-colors",
+                isDragActive ? "text-highlight" : "text-muted-foreground/70"
+              )}
+              strokeWidth={2}
+            />
+            <span className="text-[12px] font-medium leading-none text-foreground/80">
+              {isDragActive ? "Drop to add" : "Add a document"}
+            </span>
+            <span className="text-[10.5px] leading-none text-muted-foreground/70">
+              PDF, DOCX, EPUB, TXT, MD, HTML
+            </span>
           </div>
         </div>
 
         {/* Blank Document Button */}
         <Button 
           variant="outline" 
-          className="w-full gap-2 h-8 text-xs font-medium bg-transparent border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" 
+          className="w-full justify-start gap-2 h-8 text-[12.5px] font-medium" 
           onClick={onBlankDocument}
           data-testid="button-blank-document"
         >
-          <Plus className="h-3.5 w-3.5" />
+          <Plus className="h-[14px] w-[14px]" strokeWidth={2} />
           Blank Document
         </Button>
         
         {/* Find Free Books Button */}
         <Button 
           variant="outline" 
-          className="w-full gap-2 h-8 text-xs font-medium bg-transparent border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" 
+          className="w-full justify-start gap-2 h-8 text-[12.5px] font-medium" 
           onClick={() => setShowFreeBooks(true)}
           data-testid="button-find-free-books"
         >
-          <Library className="h-3.5 w-3.5" />
+          <Library className="h-[14px] w-[14px]" strokeWidth={2} />
           Find Free Books
         </Button>
 
       </div>
-      <div className="px-3 pb-1.5 pt-1">
-        <div className="flex items-center justify-between">
-          <h3 className="text-[10px] font-semibold text-sidebar-foreground/50 uppercase tracking-widest">Library</h3>
-          <span className="text-[9px] text-sidebar-foreground/40">Local storage</span>
+      <div className="px-3 pb-2 pt-2.5">
+        <div className="flex items-baseline justify-between">
+          <h3 className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em]">Library</h3>
+          <span className="text-[10.5px] text-muted-foreground/60 tabular-nums">
+            {documents.length} {documents.length === 1 ? "document" : "documents"}
+          </span>
         </div>
       </div>
       <ScrollArea className="flex-1 min-h-0">
@@ -142,24 +154,42 @@ export function Sidebar({ documents, currentDocId, onSelect, onUpload, onGenerat
               key={doc.id}
               variant="ghost"
               className={cn(
-                "w-full justify-start gap-2 font-normal h-auto py-2 px-2.5 rounded-md text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                currentDocId === doc.id && "bg-sidebar-accent text-sidebar-accent-foreground"
+                "group relative w-full justify-start gap-2.5 font-normal h-auto py-2 pl-3 pr-2.5 rounded-lg",
+                "text-foreground/75 hover:bg-card hover:text-foreground",
+                currentDocId === doc.id &&
+                  "bg-card text-foreground shadow-[0_1px_2px_0_hsl(28_20%_12%/0.05)]"
               )}
               onClick={() => onSelect(doc.id)}
             >
-              <FileText className="h-3.5 w-3.5 shrink-0 opacity-60" />
+              {currentDocId === doc.id && (
+                <span className="absolute left-0 top-1/2 h-4 w-[2.5px] -translate-y-1/2 rounded-r-full bg-highlight" />
+              )}
+              <FileText
+                className={cn(
+                  "h-[14px] w-[14px] shrink-0",
+                  currentDocId === doc.id ? "text-highlight" : "text-muted-foreground/50"
+                )}
+                strokeWidth={2}
+              />
               <div className="truncate text-left min-w-0 flex-1">
-                <span className="block truncate text-xs">{doc.title}</span>
-                <div className="flex items-center gap-1.5 mt-0.5">
+                <span className={cn(
+                  "block truncate text-[12.5px] leading-tight",
+                  currentDocId === doc.id ? "font-medium" : "font-normal"
+                )}>
+                  {doc.title}
+                </span>
+                <div className="flex items-center gap-1.5 mt-1">
                   {doc.fileType && (
                     <span className={cn(
-                      "text-[9px] font-medium px-1 py-0.5 rounded uppercase",
-                      fileTypeColors[doc.fileType] || 'bg-gray-100 text-gray-600'
+                      "text-[9px] font-medium px-1.5 py-[1px] rounded uppercase tracking-[0.04em]",
+                      FILE_TYPE_CHIP
                     )}>
                       {doc.fileType}
                     </span>
                   )}
-                  <span className="text-[10px] opacity-50 font-mono">{doc.words.length} words</span>
+                  <span className="text-[10.5px] text-muted-foreground/70 tabular-nums">
+                    {doc.words.length.toLocaleString()} words
+                  </span>
                 </div>
               </div>
             </Button>
@@ -167,7 +197,7 @@ export function Sidebar({ documents, currentDocId, onSelect, onUpload, onGenerat
         </div>
       </ScrollArea>
       {/* Generator Button - Sticky at bottom */}
-      <div className="sticky bottom-0 p-3 border-t border-sidebar-border bg-sidebar">
+      <div className="sticky bottom-0 p-3 border-t border-sidebar-border/80 bg-sidebar">
         <ContentGenerator onGenerate={onGenerate} />
       </div>
     </aside>

@@ -695,7 +695,7 @@ export function MobileControlBar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="min-w-[80px]">
-              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground py-1">Sentences</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-[11px] text-muted-foreground/80 py-1">Sentences</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {[1, 2, 3, 4, 5].map((num) => (
                 <DropdownMenuItem 

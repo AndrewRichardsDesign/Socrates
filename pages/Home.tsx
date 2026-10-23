@@ -1385,7 +1385,19 @@ export default function Home() {
         />
         
         {/* Document toolbar - chapters, find, rename, delete */}
-        {!focusMode && <div className="px-2 md:px-4 py-2 border-b border-border bg-muted/30 flex items-center gap-1.5 md:gap-2 relative z-10">
+        {!focusMode && <div className="px-2 md:px-4 h-11 border-b border-border/70 bg-card/40 flex items-center gap-1.5 md:gap-2 relative z-10">
+          {/* With no chapters to show, name what is open rather than leaving a blank rail */}
+          {currentDoc && !(currentDoc.chapters && currentDoc.chapters.length > 0) && (
+            <div className="flex items-baseline gap-2 min-w-0 flex-1">
+              <span className="truncate text-[13px] font-medium text-foreground/85">
+                {currentDoc.title}
+              </span>
+              <span className="shrink-0 text-[11px] text-muted-foreground/70 tabular-nums hidden sm:inline">
+                {totalWords.toLocaleString()} words
+              </span>
+            </div>
+          )}
+
           {/* Chapter buttons group - left side with constrained width */}
           {currentDoc && currentDoc.chapters && currentDoc.chapters.length > 0 && (
             <div className="flex-1 min-w-0 overflow-hidden">

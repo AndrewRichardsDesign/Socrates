@@ -43,6 +43,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { ColorPicker } from "@/components/ui/color-picker";
 import {
   Select,
@@ -286,7 +287,7 @@ function FontSizeSlider({
         return (
           <div key={size} className="flex-1 flex items-center justify-center">
             {isSelected ? (
-              <div className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-md min-w-[28px] text-center shadow-sm">
+              <div className="border border-border/70 bg-card text-foreground text-[11px] font-medium tabular-nums px-1.5 py-0.5 rounded-md min-w-[30px] text-center">
                 {size}
               </div>
             ) : (
@@ -569,7 +570,7 @@ function FontSection({
   return (
     <div className={containerClass}>
       <div className="flex items-center justify-between">
-        <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+        <h3 className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em] flex items-center gap-1.5">
           <CaseUpper className="h-3.5 w-3.5" />
           Font
         </h3>
@@ -751,7 +752,7 @@ function LineLengthSlider({
         return (
           <div key={length} className="flex-1 flex items-center justify-center">
             {isSelected ? (
-              <div className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-md min-w-[28px] text-center shadow-sm">
+              <div className="border border-border/70 bg-card text-foreground text-[11px] font-medium tabular-nums px-1.5 py-0.5 rounded-md min-w-[30px] text-center">
                 {length}
               </div>
             ) : (
@@ -884,7 +885,7 @@ export function RightPanel({
     const isDisabled = mode === 'rsvp' && ['column-width', 'paint-trail', 'focus-window', 'highlight'].includes(id);
 
     const containerClass = cn(
-       "space-y-3 py-2",
+       "space-y-3 py-2.5",
        isDisabled && "opacity-40 grayscale transition-opacity"
     );
     
@@ -934,7 +935,7 @@ export function RightPanel({
       case 'pause':
         return (
           <div className={containerClass}>
-            <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+            <h3 className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em] flex items-center gap-1.5">
               <Timer className="h-3.5 w-3.5" />
               Pause
             </h3>
@@ -953,7 +954,7 @@ export function RightPanel({
                   {pauseOnSentence && (
                     <div className="grid grid-cols-2 gap-3 pl-6 animate-in slide-in-from-top-2 fade-in duration-200">
                       <div className="space-y-1">
-                        <Label className="text-[10px] uppercase text-muted-foreground tracking-wide">Every</Label>
+                        <Label className="text-[11px] text-muted-foreground/80">Every</Label>
                         <div className="flex items-center gap-2">
                           <Input 
                             type="number" 
@@ -965,7 +966,7 @@ export function RightPanel({
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[10px] uppercase text-muted-foreground tracking-wide">Duration (ms)</Label>
+                        <Label className="text-[11px] text-muted-foreground/80">Duration (ms)</Label>
                         <div className="flex items-center gap-2">
                           <Input 
                             type="number" 
@@ -995,7 +996,7 @@ export function RightPanel({
                   {pauseOnParagraph && (
                     <div className="grid grid-cols-2 gap-3 pl-6 animate-in slide-in-from-top-2 fade-in duration-200">
                       <div className="space-y-1">
-                        <Label className="text-[10px] uppercase text-muted-foreground tracking-wide">Every</Label>
+                        <Label className="text-[11px] text-muted-foreground/80">Every</Label>
                         <div className="flex items-center gap-2">
                           <Input 
                             type="number" 
@@ -1007,7 +1008,7 @@ export function RightPanel({
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[10px] uppercase text-muted-foreground tracking-wide">Duration (ms)</Label>
+                        <Label className="text-[11px] text-muted-foreground/80">Duration (ms)</Label>
                         <div className="flex items-center gap-2">
                           <Input 
                             type="number" 
@@ -1029,13 +1030,13 @@ export function RightPanel({
       case 'speed':
         return (
           <div className={containerClass}>
-            <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+            <h3 className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em] flex items-center gap-1.5">
               <FastForward className="h-3.5 w-3.5" />
               Speed
             </h3>
             <div className="space-y-4 px-2">
                <div className="flex items-center justify-between">
-                 <Label className="text-xs font-medium uppercase text-muted-foreground">Words / Minute (WPM): {wpm}</Label>
+                 <Label className="text-[12px] font-medium text-foreground/70">Words / Minute (WPM): {wpm}</Label>
                </div>
                <div className="flex items-center gap-2">
                   <Button 
@@ -1074,7 +1075,7 @@ export function RightPanel({
                      onCheckedChange={(checked) => onGradualIncreaseChange(checked === true)}
                      data-testid="checkbox-gradual-increase"
                    />
-                   <Label htmlFor="gradual-increase" className="text-xs font-medium cursor-pointer">
+                   <Label htmlFor="gradual-increase" className="text-[12px] font-medium cursor-pointer text-foreground/80">
                      Gradual Increase
                    </Label>
                  </div>
@@ -1151,8 +1152,8 @@ export function RightPanel({
                </div>
 
                {mode === 'rsvp' && (
-                 <div className="pt-3 mt-2 border-t border-border space-y-1.5">
-                   <Label className="text-[10px] font-semibold uppercase text-muted-foreground tracking-widest">Word Count</Label>
+                 <div className="pt-3 mt-2 border-t border-border/60 space-y-1.5">
+                   <Label className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em]">Word Count</Label>
                    <LineLengthSlider 
                      lengths={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
                      chunkSize={chunkSize}
@@ -1169,13 +1170,13 @@ export function RightPanel({
       case 'column-width':
         return wrapWithDisabledClick(
           <div className={containerClass}>
-            <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+            <h3 className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em] flex items-center gap-1.5">
               <ArrowLeftRight className="h-3.5 w-3.5" />
               Column Width
             </h3>
             <div className="space-y-4 px-2">
                <div className="flex items-center justify-between">
-                 <Label className="text-xs font-medium uppercase text-muted-foreground">Width: {columnWidth >= 1200 ? 'Full' : `${columnWidth}px`}</Label>
+                 <Label className="text-[12px] font-medium text-foreground/70">Width: {columnWidth >= 1200 ? 'Full' : `${columnWidth}px`}</Label>
                </div>
                <DebouncedSlider 
                   value={[columnWidth]} 
@@ -1198,7 +1199,7 @@ export function RightPanel({
             "flex items-center justify-between py-3 border-t border-border/50",
             isDisabled && "opacity-40 grayscale"
           )}>
-             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+             <span className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em] flex items-center gap-1.5">
                 <Scan className="h-3.5 w-3.5" />
                 Focus Window
              </span>
@@ -1213,7 +1214,7 @@ export function RightPanel({
         return wrapWithDisabledClick(
           <div className={containerClass}>
             <div className="flex items-center justify-between">
-              <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+              <h3 className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em] flex items-center gap-1.5">
                 <Highlighter className="h-3.5 w-3.5" />
                 Highlight
               </h3>
@@ -1244,7 +1245,7 @@ export function RightPanel({
             {/* Highlight multiple words UI hidden - logic kept */}
             
             <div className="pt-3 mt-1 border-t border-border/50 flex items-center justify-between">
-              <Label className="text-[10px] font-semibold uppercase text-muted-foreground tracking-widest">Bionic Reading</Label>
+              <Label className="text-[11px] font-medium text-muted-foreground/90 tracking-[0.01em]">Bionic Reading</Label>
               <Switch 
                  checked={useBionicReading} 
                  onCheckedChange={onUseBionicReadingChange}
@@ -1259,20 +1260,23 @@ export function RightPanel({
   };
 
   return (
-    <aside className="w-72 max-w-[85vw] border-l border-border bg-background flex flex-col h-full shrink-0 z-20 md:relative fixed inset-y-0 right-0 shadow-xl md:shadow-none">
-      <div className="px-3 py-2.5 border-b border-border flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Settings2 className="h-4 w-4 text-muted-foreground" />
-          <span className="font-semibold text-sm">Settings</span>
-        </div>
-        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={onClose}>
-          <PanelRightClose className="h-3.5 w-3.5" />
+    <aside className="w-[292px] max-w-[85vw] border-l border-border/80 bg-sidebar flex flex-col h-full shrink-0 z-20 md:relative fixed inset-y-0 right-0 shadow-xl md:shadow-none">
+      <div className="h-12 px-3 border-b border-border/80 flex items-center justify-between gap-2">
+        <span className="text-[13px] font-semibold tracking-[-0.01em] text-foreground">Settings</span>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
+          <PanelRightClose className="h-[15px] w-[15px]" strokeWidth={2} />
         </Button>
       </div>
       <ScrollArea className="flex-1">
         <div className="p-3 pb-10">
           {/* Remember for Document checkbox */}
-          <div className="flex items-center gap-2 pb-3 mb-3 border-b border-border">
+          {/* Appearance sits above the reading settings: it frames them */}
+          <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-border/70">
+            <span className="text-[12px] font-medium text-foreground/80">Theme</span>
+            <ThemeToggle />
+          </div>
+
+          <div className="flex items-center gap-2.5 pb-3 mb-1 border-b border-border/70">
             <Checkbox 
               id="remember-for-document"
               checked={rememberForDocument}
@@ -1281,9 +1285,9 @@ export function RightPanel({
             />
             <Label 
               htmlFor="remember-for-document" 
-              className="text-xs font-medium cursor-pointer"
+              className="text-[12px] font-medium cursor-pointer text-foreground/80"
             >
-              Remember for this Document
+              Remember for this document
             </Label>
           </div>
            <DndContext 

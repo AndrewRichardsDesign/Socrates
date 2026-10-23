@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { resolveReaderColor } from "@/lib/readerColor";
 import { renderBionicWord } from "@/lib/bionic";
 
 interface RSVPDisplayProps {
@@ -33,7 +34,7 @@ export function RSVPDisplay({ words, currentIndex, chunkSize, isPlaying, fontSiz
     return (
       <div 
         className="text-center tracking-wide"
-        style={{ fontSize: 'calc(var(--reader-font-size, 24px) * 1.5)', fontFamily: `'${fontFamily}', sans-serif`, fontWeight: parseInt(fontWeight) || 400, color: fontColor }}
+        style={{ fontSize: 'calc(var(--reader-font-size, 24px) * 1.5)', fontFamily: `'${fontFamily}', sans-serif`, fontWeight: parseInt(fontWeight) || 400, color: resolveReaderColor(fontColor) }}
       >
         {renderWord(word)}
       </div>
@@ -52,7 +53,7 @@ export function RSVPDisplay({ words, currentIndex, chunkSize, isPlaying, fontSiz
         ) : (
           <div 
             className="text-center leading-tight max-w-4xl"
-            style={{ fontSize: 'var(--reader-font-size, 24px)', fontFamily: `'${fontFamily}', sans-serif`, fontWeight: parseInt(fontWeight) || 400, color: fontColor }}
+            style={{ fontSize: 'var(--reader-font-size, 24px)', fontFamily: `'${fontFamily}', sans-serif`, fontWeight: parseInt(fontWeight) || 400, color: resolveReaderColor(fontColor) }}
           >
             {currentChunk.map((word, i) => (
               <span key={i}>{renderWord(word)}{i < currentChunk.length - 1 ? ' ' : ''}</span>

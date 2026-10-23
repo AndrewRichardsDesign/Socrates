@@ -39,18 +39,18 @@ export function BottomControlBar({
   };
 
   return (
-    <div className="border-t border-border bg-background/95 backdrop-blur-sm sticky bottom-0 z-10">
-      <div className="py-2.5 px-3 md:py-3 md:px-4 flex items-center justify-center gap-2 md:gap-3">
+    <div className="border-t border-border/70 bg-background/80 backdrop-blur-xl sticky bottom-0 z-10">
+      <div className="h-[52px] px-3 md:px-4 flex items-center justify-center gap-2">
         {/* Repeat Split Button */}
         <div className="flex items-center">
           <Button 
             variant="outline" 
             size="sm"
-            className="h-8 rounded-r-none border-r-0 px-2.5 gap-1.5 text-xs font-medium"
+            className="h-8 rounded-r-none border-r-0 px-2.5 gap-1.5 text-[12.5px] font-medium"
             onClick={handleRepeat}
             title={`Repeat ${repeatSentences} sentence${repeatSentences > 1 ? 's' : ''}`}
           >
-            <Repeat className="h-3.5 w-3.5" />
+            <Repeat className="h-[14px] w-[14px]" strokeWidth={2} />
             <span className="hidden sm:inline">Repeat</span>
           </Button>
           <DropdownMenu>
@@ -58,13 +58,13 @@ export function BottomControlBar({
               <Button 
                 variant="outline" 
                 size="sm"
-                className="h-8 rounded-l-none px-1.5"
+                className="h-8 rounded-l-none px-1.5 text-muted-foreground"
               >
-                <ChevronDown className="h-3 w-3" />
+                <ChevronDown className="h-[13px] w-[13px]" strokeWidth={2} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="min-w-[80px]">
-              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground py-1">Sentences</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-[11px] text-muted-foreground/80 py-1">Sentences</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {[1, 2, 3, 4, 5].map((num) => (
                 <DropdownMenuItem 
@@ -86,34 +86,37 @@ export function BottomControlBar({
         <Button 
           variant="outline" 
           size="sm"
-          className="h-8 px-3 gap-1.5 text-xs font-medium"
+          className="h-8 px-3 gap-1.5 text-[12.5px] font-medium"
           onClick={onReset}
           title="Reset"
         >
-          <RotateCcw className="h-3.5 w-3.5" />
+          <RotateCcw className="h-[14px] w-[14px]" strokeWidth={2} />
           <span className="hidden sm:inline">Reset</span>
         </Button>
         
-        {/* Play/Pause Button */}
-        <Button 
+        {/* Play/pause: the primary action, labelled with the key that drives it */}
+        <Button
           size="sm"
-          className={cn(
-            "h-8 px-4 gap-1.5 text-xs font-medium shadow-sm transition-all",
-            isPlaying ? "bg-destructive hover:bg-destructive/90 text-white" : "bg-primary hover:bg-primary/90 text-primary-foreground"
-          )}
+          className="h-8 pl-3.5 pr-2.5 gap-2 text-[12.5px] font-medium ml-1"
           onClick={onPlayPause}
+          title={isPlaying ? "Pause (space)" : "Play (space)"}
         >
-          {isPlaying ? (
-            <>
-              <Pause className="h-3.5 w-3.5 fill-current" />
-              <span className="hidden sm:inline">Pause</span>
-            </>
-          ) : (
-            <>
-              <Play className="h-3.5 w-3.5 fill-current" />
-              <span className="hidden sm:inline">Play</span>
-            </>
-          )}
+          <span className="inline-flex items-center gap-1.5">
+            {isPlaying ? (
+              <Pause className="h-[13px] w-[13px] fill-current" />
+            ) : (
+              <Play className="h-[13px] w-[13px] fill-current" />
+            )}
+            <span className="hidden sm:inline">{isPlaying ? "Pause" : "Play"}</span>
+          </span>
+          <span
+            aria-hidden
+            className="hidden sm:inline-flex h-[17px] min-w-[34px] items-center justify-center rounded-[5px]
+                       border border-primary-foreground/20 bg-primary-foreground/10 px-1
+                       font-mono text-[10px] leading-none text-primary-foreground/70"
+          >
+            space
+          </span>
         </Button>
       </div>
     </div>

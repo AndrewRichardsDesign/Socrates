@@ -8,7 +8,6 @@ import {
   FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Progress } from "@/components/ui/progress";
 
 interface ControlBarProps {
   mode: 'rsvp' | 'scroll' | 'pdf';
@@ -41,115 +40,101 @@ export function ControlBar({
 }: ControlBarProps) {
   const progress = totalWords <= 1 ? (currentIndex > 0 ? 100 : 0) : Math.min(100, Math.max(0, (currentIndex / Math.max(1, totalWords - 1)) * 100));
 
+  const modes = [
+    { id: 'scroll' as const, label: 'Scroll', icon: AlignLeft, title: 'Scroll Mode' },
+    { id: 'rsvp' as const, label: 'Isolate', icon: Eye, title: 'Isolate Mode' },
+    ...(isPdfDocument
+      ? [{ id: 'pdf' as const, label: 'PDF', icon: FileText, title: 'PDF Mode' }]
+      : []),
+  ];
+
   return (
-    <div className="border-b border-border bg-background/95 backdrop-blur-sm sticky top-0 z-10 flex flex-col">
-      <div className="py-2 px-3 md:py-2.5 md:px-4 flex items-center justify-between gap-2 md:gap-3">
-        
-        {/* Left: Menu + Progress */}
-        <div className="flex items-center gap-1.5 md:gap-2 flex-1">
+    <div className="border-b border-border/70 bg-background/80 backdrop-blur-xl sticky top-0 z-10 flex flex-col">
+      <div className="h-12 px-3 md:px-4 flex items-center justify-between gap-2 md:gap-3">
+
+        {/* Left: library toggle and progress readout */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           {!isSidebarOpen && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 -ml-1"
               onClick={onToggleSidebar}
               title="Open library"
             >
-              <Menu className="h-4 w-4" />
+              <Menu className="h-[16px] w-[16px]" strokeWidth={2} />
             </Button>
           )}
 
-          <div className="flex flex-col ml-1.5 md:ml-3 min-w-[50px] md:min-w-[80px]">
-            <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-widest hidden md:block">
-              Progress
+          <div className="flex items-baseline gap-1.5 min-w-0">
+            <span className="text-[13px] font-medium tabular-nums text-foreground/85">
+              {progress < 1 && progress > 0 ? progress.toFixed(1) : Math.round(progress)}%
             </span>
-            <div className="flex items-center">
-              <span className="text-xs font-mono text-muted-foreground">
-                {progress < 1 && progress > 0 ? progress.toFixed(1) : Math.round(progress)}%
-              </span>
-            </div>
+            <span className="text-[11px] text-muted-foreground/70 hidden md:inline">read</span>
           </div>
         </div>
 
-        {/* Center: Mode Tabs */}
+        {/* Centre: mode switch */}
         <div className="flex items-center justify-center">
-          <div className="flex bg-muted p-0.5 rounded-md">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "gap-1.5 rounded px-2.5 lg:px-3 h-7 text-xs font-medium transition-colors",
-                mode === 'scroll' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              )}
-              onClick={() => onModeChange('scroll')}
-              title="Scroll Mode"
-            >
-              <AlignLeft className="h-3.5 w-3.5" />
-              <span className="hidden lg:inline">Scroll</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "gap-1.5 rounded px-2.5 lg:px-3 h-7 text-xs font-medium transition-colors",
-                mode === 'rsvp' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              )}
-              onClick={() => onModeChange('rsvp')}
-              title="Isolate Mode"
-            >
-              <Eye className="h-3.5 w-3.5" />
-              <span className="hidden lg:inline">Isolate</span>
-            </Button>
-            {isPdfDocument && (
-              <Button
-                variant="ghost"
-                size="sm"
+          <div className="flex items-center gap-0.5 bg-muted/80 p-[3px] rounded-[9px] border border-border/50">
+            {modes.map(({ id, label, icon: Icon, title }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => onModeChange(id)}
+                title={title}
                 className={cn(
-                  "gap-1.5 rounded px-2.5 lg:px-3 h-7 text-xs font-medium transition-colors",
-                  mode === 'pdf' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  "inline-flex items-center gap-1.5 rounded-[6px] px-2.5 lg:px-3 h-[26px]",
+                  "text-[12.5px] font-medium transition-all duration-150",
+                  mode === id
+                    ? "bg-card text-foreground shadow-[0_1px_2px_0_hsl(28_20%_12%/0.08)]"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
-                onClick={() => onModeChange('pdf')}
-                title="PDF Mode"
               >
-                <FileText className="h-3.5 w-3.5" />
-                <span className="hidden lg:inline">PDF</span>
-              </Button>
-            )}
+                <Icon className="h-[14px] w-[14px]" strokeWidth={2} />
+                <span className="hidden lg:inline">{label}</span>
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Right: Focus + Settings */}
-        <div className="flex items-center gap-1.5 shrink-0 flex-1 justify-end">
+        {/* Right: focus and settings */}
+        <div className="flex items-center gap-0.5 shrink-0 flex-1 justify-end">
           <Button
             variant="ghost"
             size="sm"
             className={cn(
-              "gap-1.5 rounded px-2 lg:px-2.5 h-7 text-xs",
-              focusMode ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+              "gap-1.5 h-8 px-2 lg:px-2.5 text-[12.5px]",
+              focusMode && "bg-highlight-subtle text-highlight hover:bg-highlight-subtle hover:text-highlight"
             )}
             onClick={onToggleFocusMode}
-            title={focusMode ? "Exit focus mode" : "Enter focus mode"}
+            title={focusMode ? "Exit focus mode (\u2318.)" : "Enter focus mode (\u2318.)"}
           >
-            <Focus className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-            <span className="font-medium text-xs lg:text-sm hidden lg:inline">Focus</span>
+            <Focus className="h-[15px] w-[15px]" strokeWidth={2} />
+            <span className="font-medium hidden lg:inline">Focus</span>
           </Button>
           {!isRightPanelOpen && !isMobile && !focusMode && (
             <Button
               variant="ghost"
               size="sm"
-              className="gap-1.5 rounded px-2 lg:px-2.5 h-7 text-xs text-muted-foreground hover:text-foreground"
+              className="gap-1.5 h-8 px-2 lg:px-2.5 text-[12.5px]"
               onClick={onToggleRightPanel}
               title="Open settings"
             >
-              <Settings2 className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-              <span className="font-medium text-xs lg:text-sm hidden lg:inline">Settings</span>
+              <Settings2 className="h-[15px] w-[15px]" strokeWidth={2} />
+              <span className="font-medium hidden lg:inline">Settings</span>
             </Button>
           )}
         </div>
       </div>
-      
-      {/* Progress Bar Line */}
-      <Progress value={progress} className="h-1 w-full rounded-none" />
+
+      {/* Reading progress: the one place amber runs the full width */}
+      <div className="h-[2px] w-full bg-border/40">
+        <div
+          className="h-full bg-highlight transition-[width] duration-200 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
     </div>
   );
 }
