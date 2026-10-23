@@ -1020,20 +1020,26 @@ export function ScrollDisplay({
       }}
     >
 
-      <div 
+      {/* The sheet: a page lifted off the canvas, with gutters wide enough for
+          the highlight block to overhang the first word cleanly. It has to be
+          its own wrapper — the highlight is positioned against contentRef's
+          box, so padding and borders cannot live on that element. */}
+      <div
+        className={cn(
+          "w-full rounded-xl border border-border/60 bg-card",
+          "px-6 py-8 sm:px-10 sm:py-12 md:px-14 md:py-14",
+          "shadow-[0_1px_2px_0_hsl(28_20%_12%/0.04),0_8px_28px_-6px_hsl(28_20%_12%/0.07)]"
+        )}
+        style={{ maxWidth: 'calc(var(--reader-column-width, 100%) + 7rem)' }}
+      >
+      <div
         ref={contentRef}
         className={cn(
-           "font-serif leading-loose transition-colors duration-300 transition-all ease-in-out relative z-10",
-           "text-foreground",
-           // The sheet: a page lifted off the canvas, with gutters wide enough
-           // for the highlight block to overhang the first word cleanly.
-           "rounded-xl border border-border/60 bg-card",
-           "px-6 py-8 sm:px-10 sm:py-12 md:px-14 md:py-14",
-           "shadow-[0_1px_2px_0_hsl(28_20%_12%/0.04),0_8px_28px_-6px_hsl(28_20%_12%/0.07)]"
+           "font-serif leading-[1.55] transition-colors duration-300 transition-all ease-in-out relative z-10",
+           "text-foreground"
         )}
-        style={{ 
-          width: '100%', 
-          maxWidth: 'calc(var(--reader-column-width, 100%) + 7rem)',
+        style={{
+          width: '100%',
           fontSize: 'var(--reader-font-size, 24px)',
           fontFamily: `'${fontFamily}', sans-serif`,
           fontWeight: parseInt(fontWeight) || 400,
@@ -1347,6 +1353,7 @@ export function ScrollDisplay({
           
           return elements;
         }, [words, currentIndex, chunkSize, trailIndices, highlightStyle, useBionicReading, visibleWordRange, onWordClick, lineInfo.lineEnd, useWindowMask, lineInfo.lineStart, displayStartIndex, chapters, fontSize, isPlaying, lineAnimation, grayingLines])}
+      </div>
       </div>
       
       {/* Spacer at bottom to allow scrolling last words to center */}

@@ -212,10 +212,10 @@ export function MobileControlBar({
   };
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
-    { id: 'speed', label: 'Speed', icon: <Gauge className="h-4 w-4" /> },
-    { id: 'display', label: 'Display', icon: <Highlighter className="h-4 w-4" /> },
-    { id: 'font', label: 'Font', icon: <Type className="h-4 w-4" /> },
-    { id: 'more', label: 'More', icon: <Settings2 className="h-4 w-4" /> },
+    { id: 'speed', label: 'Speed', icon: <Gauge className="h-[18px] w-[18px]" strokeWidth={2.1} /> },
+    { id: 'display', label: 'Display', icon: <Highlighter className="h-[18px] w-[18px]" strokeWidth={2.1} /> },
+    { id: 'font', label: 'Font', icon: <Type className="h-[18px] w-[18px]" strokeWidth={2.1} /> },
+    { id: 'more', label: 'More', icon: <Settings2 className="h-[18px] w-[18px]" strokeWidth={2.1} /> },
   ];
 
   const renderTabContent = () => {
@@ -749,19 +749,19 @@ export function MobileControlBar({
               }
             }}
             className={cn(
-              "flex-1 flex flex-col items-center gap-0.5 py-2 px-1 text-xs transition-colors",
+              "flex-1 flex flex-col items-center gap-1 py-2.5 px-1 transition-colors",
               activeTab === tab.id && isOpen
-                ? "text-primary bg-muted/50"
-                : "text-muted-foreground"
+                ? "text-foreground bg-accent"
+                : "text-foreground/70 hover:text-foreground"
             )}
           >
             {tab.icon}
-            <span className="text-[10px]">{tab.label}</span>
+            <span className="text-[10.5px] font-medium leading-none">{tab.label}</span>
           </button>
         ))}
         <button
           onClick={onToggle}
-          className="px-3 py-2 text-muted-foreground hover:text-foreground"
+          className="px-3 py-2.5 text-foreground/70 hover:text-foreground transition-colors"
         >
           {isOpen ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
         </button>
