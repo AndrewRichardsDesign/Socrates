@@ -378,9 +378,12 @@ interface ScrollDisplayProps {
   findMatches?: number[];
   currentMatchIndex?: number;
   onLineDurationChange?: (duration: number) => void;
+  /** Extra dwell time per word index, in ms, from punctuation. */
+  wordPauses?: number[];
 }
 
 export function ScrollDisplay({ 
+  wordPauses,
   words, 
   currentIndex, 
   linePercent,
@@ -694,30 +697,41 @@ export function ScrollDisplay({
         const lineHeight = cachedLineMetricsRef.current?.height ?? firstRect.height;
         const height = lineHeight + (paddingY * 2);
         
-        // Calculate vertical offset to center the highlight around the text
-        // Use the measured line height to maintain consistent positioning
-        const wordTop = firstRect.top - contentRect.top;
-        const wordCenterY = wordTop + (firstRect.height / 2);
+        // Centre on the glyphs, not on the word's box. Words are inline-block
+        // with padding, and baseline alignment leaves that box sitting lower
+        // than the text inside it, which pushed the highlight below the line.
+        const firstTextRect = (() => {
+          try {
+            const range = document.createRange();
+            range.selectNodeContents(firstWord);
+            const rect = range.getBoundingClientRect();
+            return rect.height > 0 ? rect : firstRect;
+          } catch {
+            return firstRect;
+          }
+        })();
+        const wordTop = firstTextRect.top - contentRect.top;
         
-        // Center the consistent-height highlight box around the word's vertical center
-        // This ensures stable positioning regardless of individual word glyph variations
-        const top = wordCenterY - (height / 2);
+        // Split the difference between the box and the text evenly, so the
+        // band always has equal air above and below the line rather than
+        // relying on two measurements that share no basis.
+        const top = wordTop - ((height - firstTextRect.height) / 2);
         
-        // Calculate CONSTANT pixel speed based on WPM
-        // This ensures the highlight moves at the same visual rate throughout the document
-        // regardless of how many words are on each line
-        // Formula: WPM / 60 = words per second
-        // Average word width = avgCharWidth * 5 (average word is ~5 characters)
-        // Pixels per second = words per second * average word width
-        const avgWordWidth = avgCharWidth * 5;
-        const wordsPerSecond = wpm / 60;
-        const pixelsPerSecond = wordsPerSecond * avgWordWidth;
-        
-        // Calculate duration based on line width / constant pixel speed
-        // Longer lines take more time, shorter lines take less time
-        // Gray-out triggers when highlight reaches line end (not word advancement)
+        // The glide has to last exactly as long as the line's words take to
+        // advance. Playback moves on a fixed clock of 60000/wpm per word, so
+        // derive the duration from the word count rather than estimating it
+        // from pixels and an assumed average word width — that estimate ran
+        // short on lines of narrow words, and the highlight sat at the line
+        // end waiting for the next line, which read as a pause.
         const linePixelWidth = endLeft - startLeft + fixedWidth;
-        const duration = (linePixelWidth / pixelsPerSecond) * 1000; // Convert to ms
+        let linePauseMs = 0;
+        if (wordPauses) {
+          for (let i = lineStart; i <= lineEnd; i++) linePauseMs += wordPauses[i] || 0;
+        }
+        const duration = (60000 / wpm) * wordsOnLine + linePauseMs;
+        
+        // Speed follows from the duration so the graying trail stays in step.
+        const pixelsPerSecond = linePixelWidth / (duration / 1000);
         
         // Calculate position of each word on the line
         const wordPositions: { left: number; width: number }[] = [];

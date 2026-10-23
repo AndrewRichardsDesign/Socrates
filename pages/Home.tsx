@@ -584,6 +584,13 @@ export default function Home() {
   const currentDoc = documents.find(d => d.id === currentDocId) || documents[0];
   const totalWords = currentDoc?.words.length || 0;
   const currentMetadata = currentDoc?.metadata || [];
+  // Natural pauses baked into the text (punctuation). Playback adds these to a
+  // word's dwell time, so the line glide has to budget for them too or it
+  // finishes early and parks at the line end.
+  const wordPauses = useMemo(
+    () => currentMetadata.map((m) => m.pauseDuration || 0),
+    [currentMetadata]
+  );
 
   // Reset mode to scroll when switching to a non-PDF document
   useEffect(() => {
@@ -1628,6 +1635,7 @@ export default function Home() {
               ) : (
                 <>
                   <ScrollDisplay 
+                  wordPauses={wordPauses}
                   key={`scroll-${currentDoc.id}-${currentDoc.chapter1WordIndex || 0}`}
                   words={currentDoc.words}
                   currentIndex={currentIndex}
